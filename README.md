@@ -70,6 +70,10 @@ python -m ml.landslide.train --config ml/configs/sa_lsnet.json
 python -m ml.landslide.evaluate --checkpoint checkpoints/sa_lsnet/best.pt \
     --data data/processed/landslide4sense --split test
 
+# 4b. Run the ablation matrix and aggregate test metrics
+python scripts/run_ablations.py --data data/processed/landslide4sense \
+    --out outputs/ablations --seeds 42 43 44
+
 # 5. Export a deployment ONNX model (fixed 128x128 tiles)
 python -m ml.landslide.export_onnx --checkpoint checkpoints/sa_lsnet/best.pt \
     --out models/sa_lsnet.onnx

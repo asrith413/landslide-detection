@@ -14,12 +14,12 @@ promote an item to "done" without a command or artifact that proves it.
 | Dataset download | in progress (Zenodo, parallel segmented) |
 | Dataset preprocessing | implemented, not yet run on full data |
 | Training | implemented, smoke run pending data |
-| Ablations | configs ready, runner script planned |
+| Ablations | runner implemented, dry-run verified |
 | ONNX export | implemented, not yet tested |
-| Rust inference core | planned |
+| Rust inference core | implemented, 11 tests passing |
 | Tauri app | planned |
 | Docs | architecture, literature review, experimental plan, progress |
-| Git history / push | pending |
+| Git history / push | 2 commits pushed to private `main` |
 
 ## Verified
 
@@ -51,6 +51,19 @@ Data source checks:
   masks; `val_0.parquet` is corrupt. Not usable for supervised training.
 - Official Zenodo release is required. TrainData.zip is 2,484,071,934 bytes.
 
+Rust core (`crates/landslide-core`):
+
+- `tract-onnx` 0.23.9, no ONNX Runtime.
+- Tiling, overlap blending, percentile stretch, ImageNet normalization, tiled
+  inference, RGBA overlay, and JSON history.
+- `cargo test --workspace`: 11 passed.
+
+Ablation runner:
+
+- `scripts/run_ablations.py` covers A0-A7 from `docs/EXPERIMENTAL_PLAN.md`.
+- Dry-run verified for A0.
+- Writes per-run configs, checkpoints, test metrics, `summary.json`, `summary.csv`.
+
 Fixes completed:
 
 - Entropy one-hot channel squeeze.
@@ -64,9 +77,9 @@ Fixes completed:
 
 Zenodo download (detached, 12 parallel range requests):
 
-- `data/raw/TrainData.zip.parts/` grows; at 2026-10-30 14:46 IST it was about 1.15 GB
-  of 2.48 GB.
-- `ValidData.zip` is queued after TrainData.
+- `data/raw/TrainData.zip.parts/` was about 1.87 GB of 2.48 GB at 2026-10-30 16:28
+  IST after resuming from partial segments.
+- `ValidData.zip` (143,423,314 bytes) is queued after TrainData.
 - Completion marker: `data/raw/.download_done`.
 - Log: `data/raw/par_dl.log`.
 - Helper scripts: `/data/data/com.termux/files/usr/tmp/segdl.py`,
@@ -116,8 +129,14 @@ ls data/raw/.download_done
 ## Commands
 
 ```bash
-# tests
+# python tests
 python3 -m unittest discover -s tests -v
+
+# rust tests
+cargo test --workspace
+
+# ablation dry run
+python3 scripts/run_ablations.py --seeds 42 --dry-run
 
 # prepare data (after extraction)
 python3 scripts/prepare_landslide4sense.py \
