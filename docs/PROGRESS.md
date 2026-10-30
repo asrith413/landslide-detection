@@ -10,16 +10,16 @@ promote an item to "done" without a command or artifact that proves it.
 | Area | Status |
 |---|---|
 | Python package (model, losses, data, metrics, tiling) | implemented |
-| Unit and smoke tests | 13 passing |
-| Dataset download | in progress (Zenodo, parallel segmented) |
-| Dataset preprocessing | implemented, not yet run on full data |
-| Training | implemented, smoke run pending data |
+| Unit and smoke tests | 15 passing |
+| Dataset download | complete (Zenodo, verified extraction) |
+| Dataset preprocessing | complete: 4044 labelled RGB patches |
+| Training | implemented; 1-epoch CPU smoke passed |
 | Ablations | runner implemented, dry-run verified |
 | ONNX export | implemented, not yet tested |
 | Rust inference core | implemented, 11 tests passing |
 | Tauri app | scaffolded; frontend builds; native build blocked by SDK/webkit |
 | Docs | architecture, literature review, experimental plan, progress |
-| Git history / push | 2 commits pushed to private `main` |
+| Git history / push | 5 commits on private `main` (after this update) |
 
 ## Verified
 
@@ -41,7 +41,7 @@ Tests:
 
 ```bash
 python3 -m unittest discover -s tests -v
-# Ran 13 tests ... OK
+# Ran 15 tests ... OK
 ```
 
 Data source checks:
@@ -49,7 +49,20 @@ Data source checks:
 - HF mirror `ibm-nasa-geospatial/Landslide4sense`: annotation HDF5 files are empty
   (about 800 bytes, no datasets); parquet contains image bytes plus a split label, not
   masks; `val_0.parquet` is corrupt. Not usable for supervised training.
-- Official Zenodo release is required. TrainData.zip is 2,484,071,934 bytes.
+- Official Zenodo release downloaded: TrainData.zip 2,484,071,934 bytes,
+  ValidData.zip 143,423,314 bytes.
+- Extracted 3,799 train + 245 validation patches = 4,044 labelled pairs.
+- Prepared 4,044 RGB NPZ patches (269 MB) under `data/processed/landslide4sense`.
+- Grouped splits: train 2,831 (1,639 positive), val 607 (351 positive),
+  test 606 (351 positive).
+- Normalization stats: mean `[0.2794, 0.3535, 0.2887]`,
+  std `[0.2439, 0.2478, 0.2425]`.
+
+Smoke training:
+
+- 1 epoch, 64 train patches, full 607-patch validation, CPU.
+- Completed in 136.9 s; val Dice 0.0459. This only proves the training loop runs;
+  it is not a meaningful model-quality result.
 
 Rust core (`crates/landslide-core`):
 
@@ -81,44 +94,26 @@ Fixes completed:
 - MobileNet duplicate-scale collection.
 - Tiling ramp clamp for tiles smaller than `2*overlap`; regression test added.
 - README config extension corrected from `.yaml` to `.json`.
+- Grouped split made stratified: previous ordering put only positives in val/test;
+  now each split contains both classes. Regression test added.
 
 ## In progress
 
-Zenodo download (detached, 12 parallel range requests):
-
-- `data/raw/TrainData.zip.parts/` was about 2.37 GB of 2.48 GB at 2026-10-30 16:38
-  IST after resuming from partial segments.
-- `ValidData.zip` (143,423,314 bytes) is queued after TrainData.
-- Completion marker: `data/raw/.download_done`.
-- Log: `data/raw/par_dl.log`.
-- Helper scripts: `/data/data/com.termux/files/usr/tmp/segdl.py`,
-  `segdl_worker.py`, `start_dl.sh`.
-
-Monitor:
-
-```bash
-du -sb data/raw/TrainData.zip.parts
-ls data/raw/.download_done
-```
+- ONNX export and Rust/PyTorch parity are the next unverified links.
+- `python3 -m pip install onnx` did not complete in this Termux environment; export
+  may need to run on the Windows machine or use a prebuilt aarch64 wheel.
 
 ## Next steps
 
-1. Wait for download completion, verify the zip integrity, extract.
-2. Run `scripts/prepare_landslide4sense.py` to build RGB NPZ files, grouped splits,
-   and statistics.
-3. Run a 64-image CPU smoke training to confirm the full loop.
-4. Export ONNX and test `onnx` availability; add a parity check.
-5. Implement `scripts/run_ablations.py` to execute the matrix in
-   `docs/EXPERIMENTAL_PLAN.md` and write `outputs/`.
-6. Implement `crates/landslide-core` with `tract-onnx` (tiling, blending, overlay,
-   history).
-7. Scaffold the Tauri 2 app (upload, preview, mask, overlay, timing, export, history).
-8. Initialize git, commit in reviewable chunks, push to the private GitHub repo.
+1. Export a checkpoint to ONNX (opset 17, fixed 128 input) and verify with `onnx`.
+2. Run `landslide-cli` on a prepared patch and compare mask/IoU against PyTorch.
+3. Build the Tauri desktop app on Windows; keep Android build for later.
+4. Train A0/A1 baselines and SA-LSNet on the CUDA laptop with the documented seeds.
+5. Run the A0-A7 ablation matrix and write measured results into the docs.
+6. Cross-region evaluation on Bijie/UAV data if labelled target data is available.
 
 ## Planned, not started
 
-- `crates/landslide-core` and `app/`.
-- `scripts/run_ablations.py`.
 - Cross-region evaluation on Bijie/UAV data.
 - Android build instructions and CI (cannot build APK in this environment).
 - Licence file (needs a decision).
@@ -127,7 +122,7 @@ ls data/raw/.download_done
 ## Known issues and risks
 
 - Full training on this CPU is not practical; use the Windows CUDA laptop.
-- ONNX export is untested; `dynamo=False` may require the `onnx` package.
+- ONNX export is untested; `dynamo=False` requires the `onnx` package, which is not installed here.
 - The official Landslide4Sense test masks are withheld; all internal test numbers come
   from the grouped hold-out and must be labelled as such.
 - Cross-region generalization is unproven until a labelled target dataset is used.
@@ -154,7 +149,8 @@ python3 scripts/prepare_landslide4sense.py \
 # smoke train (CPU, no pretrained weights)
 python3 -m ml.landslide.train \
   --config ml/configs/rgb_baseline.json \
-  --epochs 1 --limit 64 --batch-size 4 --no-pretrained
+  --epochs 1 --limit 64 --batch-size 4 --no-pretrained \
+  --no-boundary --output outputs/smoke
 
 # evaluate
 python3 -m ml.landslide.evaluate \

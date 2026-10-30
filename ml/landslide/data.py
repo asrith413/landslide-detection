@@ -200,24 +200,37 @@ def grouped_split(
 
     group_list = list(groups.values())
     rng = random.Random(seed)
-    rng.shuffle(group_list)
-    group_list.sort(key=lambda g: any(items[i]["positive"] for i in g), reverse=True)
+    ratios = {"train": 1.0 - val_ratio - test_ratio, "val": val_ratio, "test": test_ratio}
+    if min(ratios.values()) < 0 or sum(ratios.values()) > 1.0 + 1e-9:
+        raise ValueError("val_ratio + test_ratio must be in [0, 1]")
 
-    n_val = max(1, int(round(n * val_ratio)))
-    n_test = max(1, int(round(n * test_ratio)))
+    def assign(stratum: list[list[int]]) -> dict[str, list[int]]:
+        if not stratum:
+            return {"train": [], "val": [], "test": []}
+        rng.shuffle(stratum)
+        total = sum(len(g) for g in stratum)
+        targets = {k: total * v for k, v in ratios.items()}
+        counts = {k: 0 for k in ratios}
+        out = {k: [] for k in ratios}
+        for g in stratum:
+            name = max(ratios, key=lambda k: targets[k] - counts[k])
+            out[name].extend(g)
+            counts[name] += len(g)
+        return out
+
+    positive_groups = [g for g in group_list if any(items[i]["positive"] for i in g)]
+    negative_groups = [g for g in group_list if not any(items[i]["positive"] for i in g)]
     split = {"train": [], "val": [], "test": []}
-    for g in group_list:
-        if len(split["val"]) < n_val and rng.random() < 0.5:
-            split["val"].extend(g)
-        elif len(split["test"]) < n_test and rng.random() < 0.5:
-            split["test"].extend(g)
-        else:
-            split["train"].extend(g)
-    # Guarantee every split is non-empty.
+    for stratum in (positive_groups, negative_groups):
+        assigned = assign(stratum)
+        for name in split:
+            split[name].extend(assigned[name])
+
     for name in ("val", "test"):
         if not split[name]:
-            donor = split["train"]
-            split[name].append(donor.pop())
+            if not split["train"]:
+                raise ValueError("not enough groups to create non-empty splits")
+            split[name].append(split["train"].pop())
     out = {k: sorted(items[i]["path"] for i in v) for k, v in split.items()}
     return out
 

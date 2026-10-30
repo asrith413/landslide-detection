@@ -1,8 +1,10 @@
+import random
 import unittest
 
 import numpy as np
 import torch
 
+from ml.landslide.data import grouped_split
 from ml.landslide.features import StructuralFeatureExtractor
 from ml.landslide.losses import BCEDiceLoss, MaskedObjectContrastiveLoss
 from ml.landslide.tiling import pad_to_tile, stitch_probs, tile_positions, unpad
@@ -46,6 +48,23 @@ class LossTests(unittest.TestCase):
         loss = MaskedObjectContrastiveLoss()(emb, mask)
         self.assertTrue(torch.isfinite(loss))
         loss.backward()
+
+
+class SplitTests(unittest.TestCase):
+    def test_grouped_split_is_stratified(self):
+        rng = random.Random(0)
+        items = [
+            {"path": f"p{i}.npz", "hash": rng.getrandbits(64), "positive": i % 2 == 0}
+            for i in range(200)
+        ]
+        splits = grouped_split(items, val_ratio=0.15, test_ratio=0.15, seed=42)
+        self.assertEqual(sum(len(v) for v in splits.values()), 200)
+        positives = {it["path"] for it in items if it["positive"]}
+        for name in ("train", "val", "test"):
+            self.assertTrue(splits[name], name)
+            n_pos = len(set(splits[name]) & positives)
+            self.assertGreater(n_pos, 0, name)
+            self.assertLess(n_pos, len(splits[name]), name)
 
 
 class TilingTests(unittest.TestCase):
