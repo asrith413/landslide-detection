@@ -62,6 +62,7 @@ def main() -> None:
             do_constant_folding=True,
             dynamic_axes=None,
             dynamo=args.dynamo,
+            external_data=False,
         )
     meta = {
         "checkpoint": str(args.checkpoint),

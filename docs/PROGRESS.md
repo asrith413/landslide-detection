@@ -84,7 +84,7 @@ Deployment parity:
 
 - `onnx 1.23.2` built from source in Termux and relinked against `libpython3.14.so`.
 - `python3 -m ml.landslide.export_onnx ... --dynamo` writes a fixed 128x128 opset-18
-  model with external data; `tract-onnx` 0.23.9 loads it.
+  single-file model (`external_data=False`); `tract-onnx` 0.23.9 loads it.
 - `scripts/check_parity.py` runs single-threaded, batch-1 PyTorch inference and the Rust
   CLI on the same image. On the smoke checkpoint: 1-tile 128x128 image and 300x200
   6-tile image both give max 8-bit probability difference 0 and mask IoU/Dice 1.0.
@@ -143,9 +143,8 @@ Fixes completed:
 - The PyTorch 2.14 legacy exporter still fails with
   `required keyword attribute 'value' has the wrong type`; `--dynamo` with `onnxscript`
   succeeds and writes opset 18.
-- `onnx.load` crashes with `SIGSYS` when reading the external-data file on this Android
-  build, but `onnx.load(..., load_external_data=False)` and `tract-onnx` both read the
-  model correctly.
+- `onnx.load` crashed with `SIGSYS` on external-data files in this Android build; the
+  exporter now writes single-file models, which avoids that path entirely.
 - Remaining: repeat parity with a fully trained checkpoint and keep the check in the
   release process.
 

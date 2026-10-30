@@ -77,7 +77,7 @@ python scripts/run_ablations.py --data data/processed/landslide4sense \
 # 5. Export a deployment ONNX model (fixed 128x128 tiles)
 # Requires the optional onnx package: pip install onnx
 # The legacy exporter can fail on recent PyTorch; --dynamo requires onnxscript.
-# The dynamo exporter writes opset 18, which tract-onnx 0.23 supports.
+# The dynamo exporter writes a single-file opset-18 model, which tract-onnx 0.23 supports.
 python -m ml.landslide.export_onnx --checkpoint checkpoints/sa_lsnet/best.pt \
     --out models/sa_lsnet.onnx --dynamo
 
