@@ -19,7 +19,19 @@ def main() -> None:
     ap.add_argument("--size", type=int, default=128)
     ap.add_argument("--opset", type=int, default=17)
     ap.add_argument("--device", default="cpu")
+    ap.add_argument(
+        "--dynamo",
+        action="store_true",
+        help="use the torch.export-based exporter (requires onnxscript)",
+    )
     args = ap.parse_args()
+
+    try:
+        import onnx  # noqa: F401
+    except ImportError as exc:
+        raise SystemExit(
+            "ONNX export requires the optional 'onnx' package: pip install onnx"
+        ) from exc
 
     ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     from .model import build_model
@@ -40,7 +52,7 @@ def main() -> None:
             opset_version=args.opset,
             do_constant_folding=True,
             dynamic_axes=None,
-            dynamo=False,
+            dynamo=args.dynamo,
         )
     meta = {
         "checkpoint": str(args.checkpoint),

@@ -76,6 +76,7 @@ python scripts/run_ablations.py --data data/processed/landslide4sense \
 
 # 5. Export a deployment ONNX model (fixed 128x128 tiles)
 # Requires the optional onnx package: pip install onnx
+# If the legacy exporter fails, add --dynamo (requires onnxscript).
 python -m ml.landslide.export_onnx --checkpoint checkpoints/sa_lsnet/best.pt \
     --out models/sa_lsnet.onnx
 ```

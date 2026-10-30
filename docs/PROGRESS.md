@@ -119,7 +119,7 @@ Fixes completed:
 - The legacy exporter (`dynamo=False`) also fails in this PyTorch 2.14 build with
   `required keyword attribute 'value' has the wrong type` during graph optimization.
   Export should be retried on the Windows laptop with a stable PyTorch release, or
-  with the `dynamo=True` exporter after installing `onnx`/`onnxscript`.
+  with `--dynamo` after installing `onnx`/`onnxscript`.
 
 ## Next steps
 
