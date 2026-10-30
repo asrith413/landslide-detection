@@ -1,9 +1,19 @@
 use std::io::Cursor;
+use std::sync::{Arc, Mutex};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use image::{DynamicImage, GrayImage, ImageFormat, RgbaImage};
 use landslide_core::{overlay_rgba, SegmentOptions, Segmenter};
 use serde::Serialize;
+
+struct CachedSegmenter {
+    model_path: String,
+    segmenter: Segmenter,
+}
+
+struct AppState {
+    cache: Arc<Mutex<Option<CachedSegmenter>>>,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,21 +40,54 @@ fn encode_png(image: DynamicImage) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn segment_image(
+async fn segment_image(
+    state: tauri::State<'_, AppState>,
     model_path: String,
     image_path: String,
     threshold: f32,
 ) -> Result<SegmentResponse, String> {
-    let options = SegmentOptions {
-        tile_size: 128,
-        overlap: 32,
-        threshold,
-        ..SegmentOptions::default()
+    let cache = state.cache.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        segment_image_blocking(cache, model_path, image_path, threshold)
+    })
+    .await
+    .map_err(|e| format!("inference task failed: {e}"))?
+}
+
+fn segment_image_blocking(
+    cache: Arc<Mutex<Option<CachedSegmenter>>>,
+    model_path: String,
+    image_path: String,
+    threshold: f32,
+) -> Result<SegmentResponse, String> {
+    let result = {
+        let mut guard = cache
+            .lock()
+            .map_err(|_| "model cache lock poisoned".to_string())?;
+        let reuse = guard
+            .as_ref()
+            .map(|cached| cached.model_path == model_path)
+            .unwrap_or(false);
+        if !reuse {
+            let options = SegmentOptions {
+                tile_size: 128,
+                overlap: 32,
+                threshold,
+                ..SegmentOptions::default()
+            };
+            let segmenter = Segmenter::new(&model_path, options).map_err(|e| e.to_string())?;
+            *guard = Some(CachedSegmenter {
+                model_path: model_path.clone(),
+                segmenter,
+            });
+        }
+        let cached = guard.as_mut().ok_or("model cache was not initialized")?;
+        cached.segmenter.set_threshold(threshold);
+        cached
+            .segmenter
+            .segment_path(&image_path)
+            .map_err(|e| e.to_string())?
     };
-    let segmenter = Segmenter::new(&model_path, options).map_err(|e| e.to_string())?;
-    let result = segmenter
-        .segment_path(&image_path)
-        .map_err(|e| e.to_string())?;
     let rgb = image::open(&image_path)
         .map_err(|e| e.to_string())?
         .to_rgb8();
@@ -85,6 +128,9 @@ fn segment_image(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(AppState {
+            cache: Arc::new(Mutex::new(None)),
+        })
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![segment_image])
         .run(tauri::generate_context!())

@@ -61,6 +61,10 @@ impl Segmenter {
         &self.options
     }
 
+    pub fn set_threshold(&mut self, threshold: f32) {
+        self.options.threshold = threshold;
+    }
+
     pub fn segment_path(&self, path: impl AsRef<Path>) -> Result<Segmentation, CoreError> {
         let image = image::open(path.as_ref())?.to_rgb8();
         let (width, height) = image.dimensions();
@@ -146,6 +150,12 @@ fn extract_replicated(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn segmenter_is_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+        assert_send_sync::<Segmenter>();
+    }
 
     #[test]
     fn replicated_tile_matches_edges() {
