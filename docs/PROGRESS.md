@@ -13,7 +13,7 @@ promote an item to "done" without a command or artifact that proves it.
 | Unit and smoke tests | 18 passing |
 | Dataset download | complete (Zenodo, verified extraction) |
 | Dataset preprocessing | complete: 4044 labelled RGB patches |
-| Training | implemented; 1-epoch CPU smoke passed |
+| Training | implemented; RGB and SA-LSNet CPU smokes passed |
 | Ablations | runner implemented, dry-run verified |
 | ONNX export | verified: opset 18 dynamo export works |
 | Rust inference core | implemented, 12 tests passing |
@@ -69,6 +69,9 @@ Smoke training and evaluation:
 - Evaluation CLI ran on 32 test patches with boundary metrics enabled: IoU 0.0390,
   Dice 0.0751, Boundary IoU 0.1308, ~1.13 s/image, 378 MB peak RSS on CPU.
   These are pipeline checks, not reportable model results.
+- Full SA-LSNet path also smoke-tested: 1 epoch, 16 train / 32 val patches, batch 2,
+  no pretrained weights, CPU. Completed in 88.9 s; val Dice 0.0415. This exercises
+  structural features, gated fusion, and contrastive loss, not just the RGB baseline.
 
 Rust core (`crates/landslide-core`):
 
@@ -88,6 +91,9 @@ Deployment parity:
 - The same export/parity path was verified with random-weight full SA-LSNet and
   MobileNet-light checkpoints, so the structural features, gated fusion, and MobileNet
   ops are supported by `tract-onnx` 0.23.9.
+- The 1-epoch SA-LSNet smoke checkpoint exports and runs through `landslide-cli` with
+  max 8-bit probability difference 1, mean 0.0000167, and mask IoU/Dice 1.0 on a
+  300x200 6-tile image.
 - PyTorch CPU batch size and thread count change numerics slightly, so parity checks
   force `torch.set_num_threads(1)` and `batch_size=1`; the Rust app processes one tile
   at a time.

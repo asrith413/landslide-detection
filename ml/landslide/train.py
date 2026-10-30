@@ -145,6 +145,7 @@ def main() -> None:
     ap.add_argument("--epochs", type=int)
     ap.add_argument("--batch-size", type=int)
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--val-limit", type=int, help="limit validation patches for smoke runs")
     ap.add_argument("--device", default="auto")
     ap.add_argument("--output", type=Path)
     ap.add_argument("--encoder")
@@ -193,6 +194,7 @@ def main() -> None:
         batch_size=cfg["data"]["batch_size"],
         augment=False,
         num_workers=cfg["data"]["num_workers"],
+        limit=args.val_limit,
         seed=cfg["seed"],
     )
     if len(train_loader.dataset) == 0:
