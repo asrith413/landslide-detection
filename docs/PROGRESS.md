@@ -62,10 +62,10 @@ Data source checks:
 Smoke training and evaluation:
 
 - 1 epoch, 64 train patches, full 607-patch validation, CPU.
-- Completed in 133.7 s; val Dice 0.0010. This only proves the training loop runs;
+- Completed in 114.3 s; val Dice 0.0396. This only proves the training loop runs;
   it is not a meaningful model-quality result.
-- Evaluation CLI ran on 32 test patches with boundary metrics enabled: IoU 0.0,
-  Dice 0.0, Boundary IoU 0.2236, ~286 ms/image, 431 MB peak RSS on CPU.
+- Evaluation CLI ran on 32 test patches with boundary metrics enabled: IoU 0.0390,
+  Dice 0.0751, Boundary IoU 0.1308, ~1.13 s/image, 378 MB peak RSS on CPU.
   These are pipeline checks, not reportable model results.
 
 Rust core (`crates/landslide-core`):
