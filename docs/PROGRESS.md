@@ -19,7 +19,7 @@ promote an item to "done" without a command or artifact that proves it.
 | Rust inference core | implemented, 11 tests passing |
 | Tauri app | scaffolded; frontend builds; native build blocked by SDK/webkit |
 | Docs | architecture, literature review, experimental plan, progress |
-| Git history / push | 5 commits on private `main` (after this update) |
+| Git history / push | pushed to private `main` |
 
 ## Verified
 

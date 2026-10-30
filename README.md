@@ -96,6 +96,15 @@ npm run tauri android dev  # requires Android SDK/NDK + Rust Android targets
 The frontend is verified to build (`tsc` + Vite). The native shell cannot be built in
 the Termux environment because Android SDK/NDK and desktop webkit libraries are absent.
 
+Windows build prerequisites: Rust stable, Node.js, WebView2, and Visual Studio Build
+Tools with the C++ workload. Then run `npm run tauri build`; the installers are written
+under `app/src-tauri/target/release/bundle/`.
+
+Android build prerequisites: Android Studio SDK/NDK, Java 17, and the Rust Android
+targets (`rustup target add aarch64-linux-android armv7-linux-androideabi`). Set
+`ANDROID_HOME`/`NDK_HOME`, then run `npm run tauri android init` and
+`npm run tauri android dev`.
+
 There is also a standalone Rust CLI for batch inference:
 
 ```bash
