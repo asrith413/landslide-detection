@@ -21,6 +21,7 @@ class TinyEncoder(nn.Module):
         self.stage1 = nn.Sequential(ConvBNReLU(w0, w1, 3, stride=2), ConvBNReLU(w1, w1, 3))
         self.stage2 = nn.Sequential(ConvBNReLU(w1, w2, 3, stride=2), ConvBNReLU(w2, w2, 3))
         self.stage3 = nn.Sequential(ConvBNReLU(w2, w3, 3, stride=2), ConvBNReLU(w3, w3, 3))
+        self.stage4 = nn.Sequential(ConvBNReLU(w3, w3, 3, stride=2), ConvBNReLU(w3, w3, 3))
         self.channels = (w1, w2, w3, w3)
         self.out_strides = (4, 8, 16, 32)
 
@@ -29,7 +30,8 @@ class TinyEncoder(nn.Module):
         f1 = self.stage1(x)
         f2 = self.stage2(f1)
         f3 = self.stage3(f2)
-        return [f1, f2, f3, f3]
+        f4 = self.stage4(f3)
+        return [f1, f2, f3, f4]
 
 
 class _TorchvisionEncoder(nn.Module):

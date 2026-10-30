@@ -2,6 +2,7 @@ import unittest
 
 import torch
 
+from ml.landslide.encoder import build_encoder
 from ml.landslide.losses import BCEDiceLoss, MaskedObjectContrastiveLoss, TotalLoss
 from ml.landslide.metrics import SegmentationMetrics, boundary_iou
 from ml.landslide.model import StructureAwareLandslideNet
@@ -32,6 +33,12 @@ class ModelTests(unittest.TestCase):
         out = model(torch.randn(1, 3, 128, 128))
         self.assertIsNone(out["embedding"])
         self.assertEqual(tuple(out["logits"].shape), (1, 1, 128, 128))
+
+
+class EncoderTests(unittest.TestCase):
+    def test_tiny_has_four_distinct_scales(self):
+        feats = build_encoder("tiny")(torch.randn(1, 3, 128, 128))
+        self.assertEqual([f.shape[-1] for f in feats], [32, 16, 8, 4])
 
 
 class MetricTests(unittest.TestCase):
