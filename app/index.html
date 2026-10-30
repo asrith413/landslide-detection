@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Landslide Detection</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Landslide Detection</h1>
+        <p>RGB-only structure-aware segmentation. Runs locally.</p>
+      </header>
+
+      <section class="controls">
+        <div class="row">
+          <button id="pick-model">Select ONNX model</button>
+          <span id="model-label" class="muted">no model selected</span>
+        </div>
+        <div class="row">
+          <button id="pick-image">Select image</button>
+          <span id="image-label" class="muted">no image selected</span>
+        </div>
+        <div class="row">
+          <label for="threshold">Threshold <output id="threshold-value">0.50</output></label>
+          <input id="threshold" type="range" min="0.1" max="0.9" step="0.01" value="0.5" />
+        </div>
+        <div class="row">
+          <button id="run" disabled>Run segmentation</button>
+          <span id="status" class="muted"></span>
+        </div>
+      </section>
+
+      <section class="metrics" id="metrics" hidden>
+        <div><span>Coverage</span><strong id="m-coverage">-</strong></div>
+        <div><span>Latency</span><strong id="m-latency">-</strong></div>
+        <div><span>Tiles</span><strong id="m-tiles">-</strong></div>
+        <div><span>Size</span><strong id="m-size">-</strong></div>
+      </section>
+
+      <section class="views" id="views" hidden>
+        <figure>
+          <figcaption>Original</figcaption>
+          <img id="view-original" alt="Original" />
+        </figure>
+        <figure>
+          <figcaption>Overlay</figcaption>
+          <img id="view-overlay" alt="Overlay" />
+        </figure>
+        <figure>
+          <figcaption>Mask</figcaption>
+          <img id="view-mask" alt="Mask" />
+        </figure>
+      </section>
+
+      <section class="history">
+        <div class="row">
+          <h2>History</h2>
+          <button id="clear-history" class="secondary">Clear</button>
+        </div>
+        <ul id="history-list"></ul>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

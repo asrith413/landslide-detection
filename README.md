@@ -83,15 +83,25 @@ python -m ml.landslide.export_onnx --checkpoint checkpoints/sa_lsnet/best.pt \
 
 The Tauri app runs inference locally through the pure-Rust `landslide-core` crate
 (`tract-onnx`), so Windows and Android do not need a Python runtime or a cloud API.
-It supports upload/preview, binary mask + probability map, original-vs-prediction
-comparison, adjustable overlay, tiled inference for large images, timing, export,
-and local analysis history.
+It supports model/image selection, original-vs-overlay-vs-mask views, adjustable
+threshold, timing, and local history.
 
 ```bash
 cd app
 npm install
-npm run tauri dev       # Windows/Linux desktop
+npm run tauri dev          # Windows/Linux desktop
 npm run tauri android dev  # requires Android SDK/NDK + Rust Android targets
+```
+
+The frontend is verified to build (`tsc` + Vite). The native shell cannot be built in
+the Termux environment because Android SDK/NDK and desktop webkit libraries are absent.
+
+There is also a standalone Rust CLI for batch inference:
+
+```bash
+cargo run -p landslide-core --bin landslide-cli -- \
+    --model models/sa_lsnet.onnx --input slope.png \
+    --mask mask.png --prob probability.png --overlay overlay.png
 ```
 
 ## Datasets and licensing

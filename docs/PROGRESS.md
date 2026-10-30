@@ -17,7 +17,7 @@ promote an item to "done" without a command or artifact that proves it.
 | Ablations | runner implemented, dry-run verified |
 | ONNX export | implemented, not yet tested |
 | Rust inference core | implemented, 11 tests passing |
-| Tauri app | planned |
+| Tauri app | scaffolded; frontend builds; native build blocked by SDK/webkit |
 | Docs | architecture, literature review, experimental plan, progress |
 | Git history / push | 2 commits pushed to private `main` |
 
@@ -64,6 +64,15 @@ Ablation runner:
 - Dry-run verified for A0.
 - Writes per-run configs, checkpoints, test metrics, `summary.json`, `summary.csv`.
 
+Tauri app scaffold:
+
+- `app/` with Vite + TypeScript UI, model/image pickers, threshold control, three
+  views, metrics, and local history.
+- `app/src-tauri/` exposes a `segment_image` command backed by `landslide-core`.
+- Frontend verified with `tsc --noEmit` and `vite build`.
+- Native shell not built here: no Android SDK/NDK and no desktop webkit libraries.
+- `landslide-cli` binary added for batch inference and deployment testing.
+
 Fixes completed:
 
 - Entropy one-hot channel squeeze.
@@ -77,7 +86,7 @@ Fixes completed:
 
 Zenodo download (detached, 12 parallel range requests):
 
-- `data/raw/TrainData.zip.parts/` was about 1.87 GB of 2.48 GB at 2026-10-30 16:28
+- `data/raw/TrainData.zip.parts/` was about 2.37 GB of 2.48 GB at 2026-10-30 16:38
   IST after resuming from partial segments.
 - `ValidData.zip` (143,423,314 bytes) is queued after TrainData.
 - Completion marker: `data/raw/.download_done`.
