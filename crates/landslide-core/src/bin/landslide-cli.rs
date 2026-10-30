@@ -54,7 +54,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = segmenter.segment_path(&input)?;
 
     if let Some(path) = mask {
-        let bytes: Vec<u8> = result.mask.iter().map(|v| if *v > 0 { 255 } else { 0 }).collect();
+        let bytes: Vec<u8> = result
+            .mask
+            .iter()
+            .map(|v| if *v > 0 { 255 } else { 0 })
+            .collect();
         image::save_buffer(
             path,
             &bytes,

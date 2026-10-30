@@ -39,7 +39,8 @@ impl LandslideModel {
                 input.len()
             )));
         }
-        let tensor = Array4::from_shape_fn((1, 3, n, n), |(_, c, y, x)| input[c * n * n + y * n + x]);
+        let tensor =
+            Array4::from_shape_fn((1, 3, n, n), |(_, c, y, x)| input[c * n * n + y * n + x]);
         let result = self
             .model
             .run(tvec!(tensor.into_tensor().into()))

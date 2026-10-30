@@ -49,7 +49,9 @@ impl Segmenter {
             return Err(CoreError::Geometry("tile size must be positive".into()));
         }
         if options.overlap >= options.tile_size {
-            return Err(CoreError::Geometry("overlap must be smaller than tile".into()));
+            return Err(CoreError::Geometry(
+                "overlap must be smaller than tile".into(),
+            ));
         }
         let model = LandslideModel::load(model_path, options.tile_size)?;
         Ok(Self { model, options })
@@ -119,7 +121,13 @@ impl Segmenter {
     }
 }
 
-fn extract_replicated(rgb: &[u8], width: usize, height: usize, tile: &Tile, size: usize) -> Vec<u8> {
+fn extract_replicated(
+    rgb: &[u8],
+    width: usize,
+    height: usize,
+    tile: &Tile,
+    size: usize,
+) -> Vec<u8> {
     let mut out = vec![0u8; size * size * 3];
     for y in 0..size {
         let sy = (tile.y + y).min(height - 1);
@@ -141,7 +149,12 @@ mod tests {
     fn replicated_tile_matches_edges() {
         let (w, h) = (4, 4);
         let rgb: Vec<u8> = (0..w * h * 3).map(|i| (i % 255) as u8).collect();
-        let tile = Tile { y: 2, x: 2, h: 2, w: 2 };
+        let tile = Tile {
+            y: 2,
+            x: 2,
+            h: 2,
+            w: 2,
+        };
         let out = extract_replicated(&rgb, w, h, &tile, 4);
         assert_eq!(out.len(), 4 * 4 * 3);
         let src = (2 * w + 2) * 3;

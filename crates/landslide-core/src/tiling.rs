@@ -30,7 +30,9 @@ pub fn tile_positions(
         return Err(CoreError::Geometry("tile must be positive".into()));
     }
     if overlap >= tile {
-        return Err(CoreError::Geometry("overlap must be smaller than tile".into()));
+        return Err(CoreError::Geometry(
+            "overlap must be smaller than tile".into(),
+        ));
     }
     if height == 0 || width == 0 {
         return Err(CoreError::Geometry("image must be non-empty".into()));
@@ -57,16 +59,16 @@ pub fn blend_window(h: usize, w: usize, overlap: usize) -> Vec<f32> {
     let mut wx = vec![1.0f32; w];
     if ov_y > 0 {
         for i in 0..ov_y {
-            let v = 1.0 / (ov_y as f32 + 1.0) + (1.0 - 1.0 / (ov_y as f32 + 1.0)) * i as f32
-                / (ov_y as f32 - 1.0).max(1.0);
+            let v = 1.0 / (ov_y as f32 + 1.0)
+                + (1.0 - 1.0 / (ov_y as f32 + 1.0)) * i as f32 / (ov_y as f32 - 1.0).max(1.0);
             wy[i] = v;
             wy[h - 1 - i] = v;
         }
     }
     if ov_x > 0 {
         for i in 0..ov_x {
-            let v = 1.0 / (ov_x as f32 + 1.0) + (1.0 - 1.0 / (ov_x as f32 + 1.0)) * i as f32
-                / (ov_x as f32 - 1.0).max(1.0);
+            let v = 1.0 / (ov_x as f32 + 1.0)
+                + (1.0 - 1.0 / (ov_x as f32 + 1.0)) * i as f32 / (ov_x as f32 - 1.0).max(1.0);
             wx[i] = v;
             wx[w - 1 - i] = v;
         }

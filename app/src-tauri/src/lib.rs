@@ -49,6 +49,15 @@ fn segment_image(
         .map_err(|e| e.to_string())?
         .to_rgb8();
     let (width, height) = rgb.dimensions();
+    let overlay_bytes = overlay_rgba(
+        rgb.as_raw(),
+        result.width,
+        result.height,
+        &result.probability,
+        threshold,
+        0.45,
+    )
+    .map_err(|e| e.to_string())?;
     let original = encode_png(DynamicImage::ImageRgb8(rgb))?;
     let mask_bytes: Vec<u8> = result
         .mask
@@ -58,18 +67,6 @@ fn segment_image(
     let mask_image =
         GrayImage::from_raw(width, height, mask_bytes).ok_or("mask buffer size mismatch")?;
     let mask = encode_png(DynamicImage::ImageLuma8(mask_image))?;
-    let overlay_bytes = overlay_rgba(
-        image::open(&image_path)
-            .map_err(|e| e.to_string())?
-            .to_rgb8()
-            .as_raw(),
-        result.width,
-        result.height,
-        &result.probability,
-        threshold,
-        0.45,
-    )
-    .map_err(|e| e.to_string())?;
     let overlay_image =
         RgbaImage::from_raw(width, height, overlay_bytes).ok_or("overlay buffer size mismatch")?;
     let overlay = encode_png(DynamicImage::ImageRgba8(overlay_image))?;
