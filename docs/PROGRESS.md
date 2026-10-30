@@ -10,7 +10,7 @@ promote an item to "done" without a command or artifact that proves it.
 | Area | Status |
 |---|---|
 | Python package (model, losses, data, metrics, tiling) | implemented |
-| Unit and smoke tests | 16 passing |
+| Unit and smoke tests | 17 passing |
 | Dataset download | complete (Zenodo, verified extraction) |
 | Dataset preprocessing | complete: 4044 labelled RGB patches |
 | Training | implemented; 1-epoch CPU smoke passed |
@@ -41,7 +41,7 @@ Tests:
 
 ```bash
 python3 -m unittest discover -s tests -v
-# Ran 16 tests ... OK
+# Ran 17 tests ... OK
 ```
 
 Data source checks:
@@ -107,6 +107,8 @@ Fixes completed:
 - Dataset normalization fixed to ImageNet mean/std to match `denormalize_rgb`, ONNX
   metadata, and `landslide-core`; dataset-specific stats were previously applied while
   the structural branch denormalized with ImageNet values.
+- Orientation features now use algebraic `cos(2θ)`/`sin(2θ)` instead of
+  `atan2`+`cos`/`sin`, improving ONNX/tract export compatibility.
 
 ## In progress
 

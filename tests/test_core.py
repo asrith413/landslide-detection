@@ -24,6 +24,15 @@ class FeatureTests(unittest.TestCase):
         f = StructuralFeatureExtractor()(x)
         self.assertLess(float(f[:, 1].max()), 0.01)
 
+    def test_orientation_channels_are_unit_circle(self):
+        f = StructuralFeatureExtractor()(torch.rand(1, 3, 32, 32))
+        cos2 = 2.0 * f[:, 2] - 1.0
+        sin2 = 2.0 * f[:, 3] - 1.0
+        err = (cos2 * cos2 + sin2 * sin2 - 1.0).abs()
+        strong = f[:, 1] > 0.2
+        self.assertTrue(bool(strong.any()))
+        self.assertLess(float(err[strong].max()), 1e-3)
+
 
 class LossTests(unittest.TestCase):
     def test_bce_dice_is_finite(self):

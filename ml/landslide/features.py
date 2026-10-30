@@ -89,10 +89,12 @@ class StructuralFeatureExtractor(nn.Module):
         gray_pad = F.pad(gray, (1, 1, 1, 1), mode="replicate")
         gx = F.conv2d(gray_pad, kx, padding=0)
         gy = F.conv2d(gray_pad, ky, padding=0)
-        mag = torch.sqrt(gx * gx + gy * gy + 1e-6)
-        angle = torch.atan2(gy, gx)
-        orient_cos = 0.5 * (torch.cos(2.0 * angle) + 1.0)
-        orient_sin = 0.5 * (torch.sin(2.0 * angle) + 1.0)
+        energy = gx * gx + gy * gy + 1e-6
+        mag = torch.sqrt(energy)
+        # cos(2*theta), sin(2*theta) without atan2/cos/sin: export-friendly and
+        # numerically stable for the ONNX/tract deployment path.
+        orient_cos = (0.5 * ((gx * gx - gy * gy) / energy + 1.0)).clamp(0.0, 1.0)
+        orient_sin = (0.5 * ((2.0 * gx * gy) / energy + 1.0)).clamp(0.0, 1.0)
 
         lap = F.conv2d(gray_pad, _laplacian_kernel(rgb01.device, rgb01.dtype), padding=0)
 
