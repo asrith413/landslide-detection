@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Convert the official 14-band Landslide4Sense HDF5 release to RGB-only NPZ patches.
 
-The official test masks are withheld by the organisers.  We therefore create a
-deterministic, near-duplicate-grouped split from the labelled training release and
-never claim official test-set numbers.  Use the official validation split only for
-unlabelled inference.
+The official test masks are withheld by the organisers.  We combine the labelled
+training and validation releases (4,044 patches) and create a deterministic,
+near-duplicate-grouped 70/15/15 split.  Never claim official test-set numbers.
 
 Example
 -------

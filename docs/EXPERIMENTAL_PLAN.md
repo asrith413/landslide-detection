@@ -32,14 +32,17 @@ or a UAV dataset) and is reported separately.
 
 ### Primary: Landslide4Sense (Zenodo, CC BY 4.0)
 
-- 3,799 labelled training patches, 245 validation, 800 test (test masks withheld).
+- 3,799 labelled training patches, 245 labelled validation patches, 800 test images
+  (official test masks withheld).
 - 14 bands; this project uses **B4/B3/B2 = 0-based indices (3,2,1)** as RGB.
 - Preprocessing: per-channel 2nd-98th percentile stretch to uint8, then ImageNet
   normalization. The same stretch is used by the app.
-- Splits: deterministic **near-duplicate-grouped** split of the labelled release using
-  64-bit dHash and union-find with Hamming threshold 6. Default 70/15/15.
-- The official validation split is not used for model selection because its masks are
-  withheld in the public release. This is stated in every results table.
+- Splits: deterministic **near-duplicate-grouped** split of the 4,044 labelled
+  train+validation patches using 64-bit dHash and union-find with Hamming threshold 6.
+  Default 70/15/15.
+- The official validation split is not used as a separate model-selection set because
+  we re-split all labelled patches. Official validation masks are included in that
+  pool; no official validation or test numbers are claimed.
 
 Why grouped splits: adjacent patches from the same event can be near-duplicates, and a
 random split would overstate performance. Grouping is a leakage reducer, not a

@@ -119,7 +119,7 @@ cargo run -p landslide-core --bin landslide-cli -- \
 
 | Dataset | Role | RGB | Masks | License | Access |
 |---|---|---|---|---|---|
-| Landslide4Sense (Zenodo) | primary train/val/test | B4/B3/B2 (RGB) | train (val/test labels withheld by organisers) | CC BY 4.0 | https://doi.org/10.5281/zenodo.10463239 |
+| Landslide4Sense (Zenodo) | primary train/val/test | B4/B3/B2 (RGB) | train + val masks; official test masks withheld | CC BY 4.0 | https://doi.org/10.5281/zenodo.10463239 |
 | Landslide4Sense (HF mirror) | convenience mirror | yes | **mirror annotations are empty** (verified) | MIT/CC BY | https://huggingface.co/datasets/ibm-nasa-geospatial/Landslide4sense |
 | Bijie / UAV landslide datasets | cross-region evaluation (planned) | varies | varies | check per dataset | see literature review |
 
@@ -129,9 +129,10 @@ scripts in this repository and be stored under `outputs/` with the exact config.
 ## Honest evaluation policy
 
 - No fabricated metrics. Results are only reported after running the included code.
-- Official validation/test masks are not available for Landslide4Sense test; we use a
-  deterministic, landslide-stratified hold-out from the labelled training release and
-  state this clearly. Cross-region claims require a separate labelled dataset.
+- Official test masks are withheld by the organisers. We combine the 4,044 labelled
+  train+validation patches and use a deterministic, near-duplicate-grouped hold-out;
+  we do not claim official validation or test numbers. Cross-region claims require a
+  separate labelled dataset.
 - Latency is measured on the machine that produced the result and reported with
   hardware, batch size, and input size.
 

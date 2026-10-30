@@ -145,7 +145,7 @@ overlay generation, timing, and history storage.
 - RGB-only performance is materially lower than 14-band performance; see
   `docs/LITERATURE_REVIEW.md`.
 - The official Landslide4Sense test masks are withheld. Internal evaluation uses a
-  deterministic grouped hold-out from the labelled training release.
+  deterministic grouped hold-out from the 4,044 labelled train+validation patches.
 - Near-duplicate grouping uses a 64-bit dHash, which is a leakage reducer, not a
   substitute for geographic separation.
 - Contrastive loss requires masks with both classes; all-background tiles contribute
