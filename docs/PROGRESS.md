@@ -55,16 +55,17 @@ Data source checks:
 - Prepared 4,044 RGB NPZ patches (269 MB) under `data/processed/landslide4sense`.
 - Grouped splits: train 2,831 (1,639 positive), val 607 (351 positive),
   test 606 (351 positive).
-- Normalization stats: mean `[0.2794, 0.3535, 0.2887]`,
-  std `[0.2439, 0.2478, 0.2425]`.
+- Dataset RGB stats recorded in `stats.json` (mean `[0.2794, 0.3535, 0.2887]`,
+  std `[0.2439, 0.2478, 0.2425]`); training, export, and Rust use fixed ImageNet
+  mean/std so the structural branch and deployment preprocessing stay consistent.
 
 Smoke training and evaluation:
 
 - 1 epoch, 64 train patches, full 607-patch validation, CPU.
-- Completed in 136.9 s; val Dice 0.0459. This only proves the training loop runs;
+- Completed in 133.7 s; val Dice 0.0010. This only proves the training loop runs;
   it is not a meaningful model-quality result.
-- Evaluation CLI ran on 32 test patches with boundary metrics enabled: IoU 0.0496,
-  Dice 0.0945, Boundary IoU 0.1396, ~312 ms/image, 443 MB peak RSS on CPU.
+- Evaluation CLI ran on 32 test patches with boundary metrics enabled: IoU 0.0,
+  Dice 0.0, Boundary IoU 0.2236, ~286 ms/image, 431 MB peak RSS on CPU.
   These are pipeline checks, not reportable model results.
 
 Rust core (`crates/landslide-core`):
@@ -103,6 +104,9 @@ Fixes completed:
   added for `(B,1,H,W)` accumulator input.
 - Boundary IoU returns 1.0 for identical masks with empty boundary bands.
 - Peak RSS unit corrected for Linux/Termux (KiB, not bytes).
+- Dataset normalization fixed to ImageNet mean/std to match `denormalize_rgb`, ONNX
+  metadata, and `landslide-core`; dataset-specific stats were previously applied while
+  the structural branch denormalized with ImageNet values.
 
 ## In progress
 

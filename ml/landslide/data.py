@@ -81,7 +81,6 @@ class Landslide4SenseDataset(Dataset):
         root: str | Path,
         split: str = "train",
         augment: bool = False,
-        stats: dict[str, Any] | None = None,
         limit: int | None = None,
         seed: int = 42,
     ) -> None:
@@ -101,11 +100,10 @@ class Landslide4SenseDataset(Dataset):
         self.files = [self.root / p for p in splits[split]]
         if limit:
             self.files = self.files[:limit]
-        if stats is None:
-            stats_file = self.root / "stats.json"
-            stats = json.loads(stats_file.read_text()) if stats_file.exists() else {}
-        self.mean = tuple(stats.get("mean", IMAGENET_MEAN))
-        self.std = tuple(stats.get("std", IMAGENET_STD))
+        # Fixed ImageNet normalization keeps training, ONNX export, and the Rust app
+        # identical, and matches the denormalization used by the structural branch.
+        self.mean = IMAGENET_MEAN
+        self.std = IMAGENET_STD
 
     def __len__(self) -> int:
         return len(self.files)
