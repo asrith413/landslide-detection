@@ -84,3 +84,54 @@ jobs:
           npm run build
       - name: Check Tauri app
         run: cargo check --manifest-path app/src-tauri/Cargo.toml --all-targets
+
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch torchvision numpy pillow onnx onnxscript
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Create tiny checkpoint and sample image
+        run: |
+          python - <<'PY'
+          import numpy as np
+          import torch
+          from PIL import Image
+
+          from ml.landslide.model import build_model
+
+          cfg = {
+              "model": {
+                  "encoder": "tiny",
+                  "pretrained": False,
+                  "use_structural": True,
+                  "fusion": "gate",
+                  "use_contrastive": True,
+                  "width": 32,
+                  "decoder_channels": 32,
+                  "embed_dim": 16,
+                  "dropout": 0.0,
+              }
+          }
+          model = build_model(cfg)
+          torch.save({"config": cfg, "model_state": model.state_dict()}, "/tmp/tiny.pt")
+          rng = np.random.default_rng(7)
+          Image.fromarray(rng.integers(0, 256, (160, 192, 3), dtype=np.uint8)).save(
+              "/tmp/sample.png"
+          )
+          PY
+      - name: Export ONNX
+        run: python -m ml.landslide.export_onnx --checkpoint /tmp/tiny.pt --out /tmp/tiny.onnx --dynamo
+      - name: Build CLI
+        run: cargo build --release --bin landslide-cli
+      - name: PyTorch/Rust parity
+        run: |
+          python scripts/check_parity.py             --checkpoint /tmp/tiny.pt             --onnx /tmp/tiny.onnx             --image /tmp/sample.png             --out /tmp/parity             --cli target/release/landslide-cli             --max-diff 2             --min-agreement 0.0
