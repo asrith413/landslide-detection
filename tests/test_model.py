@@ -57,6 +57,15 @@ class MetricTests(unittest.TestCase):
         a = (torch.rand(32, 32) > 0.5).numpy().astype("uint8")
         self.assertAlmostEqual(boundary_iou(a, a), 1.0)
 
+    def test_accumulator_boundary_with_channel_dim(self):
+        m = SegmentationMetrics()
+        logits = torch.full((2, 1, 32, 32), 10.0)
+        target = torch.ones(2, 1, 32, 32)
+        m.update(logits, target, compute_boundary=True)
+        r = m.compute()
+        self.assertAlmostEqual(r["boundary_iou"], 1.0)
+        self.assertEqual(r["pixels"], 2 * 32 * 32)
+
 
 if __name__ == "__main__":
     unittest.main()

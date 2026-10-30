@@ -105,6 +105,6 @@ def peak_memory_mb() -> float | None:
         # Linux reports KiB, macOS reports bytes.
         import sys
 
-        return rss / (1024 * 1024) if sys.platform != "darwin" else rss / (1024 * 1024)
+        return rss / (1024 * 1024) if sys.platform == "darwin" else rss / 1024
     except Exception:
         return None

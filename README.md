@@ -108,7 +108,7 @@ cargo run -p landslide-core --bin landslide-cli -- \
 
 | Dataset | Role | RGB | Masks | License | Access |
 |---|---|---|---|---|---|
-| Landslide4Sense (Zenodo) | primary train/val/test | B2/B3/B4 (RGB) | train (val/test labels withheld by organisers) | CC BY 4.0 | https://doi.org/10.5281/zenodo.10463239 |
+| Landslide4Sense (Zenodo) | primary train/val/test | B4/B3/B2 (RGB) | train (val/test labels withheld by organisers) | CC BY 4.0 | https://doi.org/10.5281/zenodo.10463239 |
 | Landslide4Sense (HF mirror) | convenience mirror | yes | **mirror annotations are empty** (verified) | MIT/CC BY | https://huggingface.co/datasets/ibm-nasa-geospatial/Landslide4sense |
 | Bijie / UAV landslide datasets | cross-region evaluation (planned) | varies | varies | check per dataset | see literature review |
 

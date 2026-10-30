@@ -10,7 +10,7 @@ promote an item to "done" without a command or artifact that proves it.
 | Area | Status |
 |---|---|
 | Python package (model, losses, data, metrics, tiling) | implemented |
-| Unit and smoke tests | 15 passing |
+| Unit and smoke tests | 16 passing |
 | Dataset download | complete (Zenodo, verified extraction) |
 | Dataset preprocessing | complete: 4044 labelled RGB patches |
 | Training | implemented; 1-epoch CPU smoke passed |
@@ -41,7 +41,7 @@ Tests:
 
 ```bash
 python3 -m unittest discover -s tests -v
-# Ran 15 tests ... OK
+# Ran 16 tests ... OK
 ```
 
 Data source checks:
@@ -58,11 +58,14 @@ Data source checks:
 - Normalization stats: mean `[0.2794, 0.3535, 0.2887]`,
   std `[0.2439, 0.2478, 0.2425]`.
 
-Smoke training:
+Smoke training and evaluation:
 
 - 1 epoch, 64 train patches, full 607-patch validation, CPU.
 - Completed in 136.9 s; val Dice 0.0459. This only proves the training loop runs;
   it is not a meaningful model-quality result.
+- Evaluation CLI ran on 32 test patches with boundary metrics enabled: IoU 0.0496,
+  Dice 0.0945, Boundary IoU 0.1396, ~312 ms/image, 443 MB peak RSS on CPU.
+  These are pipeline checks, not reportable model results.
 
 Rust core (`crates/landslide-core`):
 
@@ -96,6 +99,10 @@ Fixes completed:
 - README config extension corrected from `.yaml` to `.json`.
 - Grouped split made stratified: previous ordering put only positives in val/test;
   now each split contains both classes. Regression test added.
+- Boundary metrics now squeeze the singleton channel before pooling; regression test
+  added for `(B,1,H,W)` accumulator input.
+- Boundary IoU returns 1.0 for identical masks with empty boundary bands.
+- Peak RSS unit corrected for Linux/Termux (KiB, not bytes).
 
 ## In progress
 
@@ -156,6 +163,11 @@ python3 -m ml.landslide.train \
 python3 -m ml.landslide.evaluate \
   --checkpoint checkpoints/sa_lsnet/best.pt \
   --data data/processed/landslide4sense --split test
+
+# quick evaluation smoke
+python3 -m ml.landslide.evaluate \
+  --checkpoint outputs/smoke/best.pt \
+  --data data/processed/landslide4sense --split test --limit 32
 
 # export
 python3 -m ml.landslide.export_onnx \

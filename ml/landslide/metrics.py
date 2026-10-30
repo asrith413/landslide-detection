@@ -33,7 +33,7 @@ def boundary_iou(pred: np.ndarray, target: np.ndarray, dilation_ratio: float = 0
     inter = np.logical_and(bp, bt).sum()
     union = np.logical_or(bp, bt).sum()
     if union == 0:
-        return 1.0 if not pred.any() and not target.any() else 0.0
+        return 1.0 if np.array_equal(pred, target) else 0.0
     return float(inter / union)
 
 
@@ -52,6 +52,12 @@ class SegmentationMetrics:
     def update(self, logits: torch.Tensor, target: torch.Tensor, compute_boundary: bool = True) -> None:
         probs = torch.sigmoid(logits).detach().cpu().numpy()
         gt = (target.detach().cpu().numpy() > 0.5).astype(np.uint8)
+        if probs.ndim == 4:
+            probs = probs[:, 0]
+            gt = gt[:, 0]
+        elif probs.ndim == 2:
+            probs = probs[None]
+            gt = gt[None]
         pred = (probs >= self.threshold).astype(np.uint8)
         self.tp += int(np.logical_and(pred, gt).sum())
         self.fp += int(np.logical_and(pred, ~gt.astype(bool)).sum())
