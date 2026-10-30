@@ -1,0 +1,13 @@
+# Core ML stack. On Termux: pkg install python-torch python-numpy python-pillow python-scipy libhdf5
+# and build h5py with HDF5_DIR=$PREFIX. On Windows: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch>=2.2
+torchvision>=0.17
+numpy>=1.24
+Pillow>=10.0
+h5py>=3.9
+scipy>=1.10
+
+# Optional experiment tracking / export (not required for core training)
+# onnx>=1.15
+# onnxruntime>=1.17
+# tensorboard>=2.14

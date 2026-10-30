@@ -1,0 +1,17 @@
+{
+  "experiment": "structural_concat",
+  "seed": 42,
+  "data": {"root": "data/processed/landslide4sense", "batch_size": 16, "num_workers": 0, "limit": 0},
+  "model": {
+    "encoder": "regnet_y_400mf",
+    "pretrained": true,
+    "use_structural": true,
+    "fusion": "none",
+    "use_contrastive": false,
+    "width": 96,
+    "decoder_channels": 64,
+    "dropout": 0.1
+  },
+  "train": {"epochs": 30, "lr": 0.0003, "weight_decay": 0.01, "warmup_epochs": 2, "amp": true, "grad_clip": 1.0, "patience": 8, "contrastive_weight": 0.0, "pos_weight": 2.0, "boundary_weight": 0.0},
+  "output": "checkpoints/structural_concat"
+}

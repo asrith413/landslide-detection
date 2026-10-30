@@ -1,0 +1,9 @@
+[package]
+name = "parquet_extract"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+parquet = { version = "56", features = ["arrow"] }
+arrow = "56"
+flate2 = { version = "1", features = ["rust_backend"] }

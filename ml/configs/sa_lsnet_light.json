@@ -1,0 +1,18 @@
+{
+  "experiment": "sa_lsnet_light",
+  "seed": 42,
+  "data": {"root": "data/processed/landslide4sense", "batch_size": 16, "num_workers": 0, "limit": 0},
+  "model": {
+    "encoder": "mobilenet_v3_small",
+    "pretrained": true,
+    "use_structural": true,
+    "fusion": "gate",
+    "use_contrastive": true,
+    "width": 64,
+    "decoder_channels": 48,
+    "embed_dim": 32,
+    "dropout": 0.1
+  },
+  "train": {"epochs": 30, "lr": 0.0005, "weight_decay": 0.01, "warmup_epochs": 2, "amp": true, "grad_clip": 1.0, "patience": 8, "contrastive_weight": 0.1, "pos_weight": 2.0, "boundary_weight": 0.0},
+  "output": "checkpoints/sa_lsnet_light"
+}

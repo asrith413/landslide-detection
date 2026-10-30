@@ -1,0 +1,59 @@
+# Data and experiments (never commit)
+data/
+datasets/
+checkpoints/
+outputs/
+runs/
+wandb/
+*.h5
+*.hdf5
+*.parquet
+*.zip
+*.tar
+*.tar.gz
+
+# Models / binaries
+models/*.onnx
+models/*.pt
+models/*.pth
+models/*.bin
+*.onnx
+*.pt
+*.pth
+*.safetensors
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / Tauri
+node_modules/
+app/dist/
+app/src-tauri/target/
+app/src-tauri/gen/
+app/.tauri/
+target/
+
+# Rust
+**/target/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Local environment
+.env
+.env.*
+!.env.example
