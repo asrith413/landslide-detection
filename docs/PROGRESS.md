@@ -113,8 +113,12 @@ Fixes completed:
 ## In progress
 
 - ONNX export and Rust/PyTorch parity are the next unverified links.
-- `python3 -m pip install onnx` did not complete in this Termux environment; export
-  may need to run on the Windows machine or use a prebuilt aarch64 wheel.
+- `python3 -m pip install onnx` did not complete in this Termux environment and no
+  aarch64 wheel is available on PyPI.
+- The legacy exporter (`dynamo=False`) also fails in this PyTorch 2.14 build with
+  `required keyword attribute 'value' has the wrong type` during graph optimization.
+  Export should be retried on the Windows laptop with a stable PyTorch release, or
+  with the `dynamo=True` exporter after installing `onnx`/`onnxscript`.
 
 ## Next steps
 
@@ -135,7 +139,7 @@ Fixes completed:
 ## Known issues and risks
 
 - Full training on this CPU is not practical; use the Windows CUDA laptop.
-- ONNX export is untested; `dynamo=False` requires the `onnx` package, which is not installed here.
+- ONNX export is untested: `onnx` is unavailable here, and the PyTorch 2.14 legacy exporter fails before serialization. Retry on Windows with a stable PyTorch build.
 - The official Landslide4Sense test masks are withheld; all internal test numbers come
   from the grouped hold-out and must be labelled as such.
 - Cross-region generalization is unproven until a labelled target dataset is used.
