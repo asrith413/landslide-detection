@@ -34,7 +34,7 @@ Model checks:
 
 - `regnet_y_400mf` encoder channels `(48, 104, 208, 440)` at strides 4/8/16/32.
 - `mobilenet_v3_small` encoder channels `(16, 24, 40, 96)`.
-- Full regnet model: 12,491,741 parameters; mobilenet light: 3,578,434.
+- Full regnet model: 12,491,741 parameters; mobilenet light: 3,321,450.
 - Forward outputs: logits `(B,1,128,128)`, embedding `(B,64,32,32)`.
 - Backward pass produces finite gradients.
 - `DeploymentModel` returns a `(1,1,128,128)` probability map in `[0,1]`.
@@ -85,6 +85,9 @@ Deployment parity:
 - `scripts/check_parity.py` runs single-threaded, batch-1 PyTorch inference and the Rust
   CLI on the same image. On the smoke checkpoint: 1-tile 128x128 image and 300x200
   6-tile image both give max 8-bit probability difference 0 and mask IoU/Dice 1.0.
+- The same export/parity path was verified with random-weight full SA-LSNet and
+  MobileNet-light checkpoints, so the structural features, gated fusion, and MobileNet
+  ops are supported by `tract-onnx` 0.23.9.
 - PyTorch CPU batch size and thread count change numerics slightly, so parity checks
   force `torch.set_num_threads(1)` and `batch_size=1`; the Rust app processes one tile
   at a time.

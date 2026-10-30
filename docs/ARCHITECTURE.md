@@ -64,7 +64,7 @@ keep channels in `[0,1]` without dataset-specific statistics.
 | `tiny` | configurable | tests and offline smoke runs |
 | `regnet_y_400mf` | 48, 104, 208, 440 | default; 12.49 M total params with full head |
 | `regnet_y_800mf` | from torchvision | higher-capacity option |
-| `mobilenet_v3_small` | 16, 24, 40, 96 | light option; 3.58 M total params |
+| `mobilenet_v3_small` | 16, 24, 40, 96 | light option; 3.32 M total params |
 
 ImageNet pretraining is optional. The default configs set `pretrained: true`; use
 `--no-pretrained` when the machine is offline or for from-scratch ablations.
