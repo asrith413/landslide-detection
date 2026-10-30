@@ -5,7 +5,7 @@ import torch
 from ml.landslide.encoder import build_encoder
 from ml.landslide.losses import BCEDiceLoss, MaskedObjectContrastiveLoss, TotalLoss
 from ml.landslide.metrics import SegmentationMetrics, boundary_iou
-from ml.landslide.model import StructureAwareLandslideNet
+from ml.landslide.model import DeploymentModel, StructureAwareLandslideNet
 
 
 class ModelTests(unittest.TestCase):
@@ -24,6 +24,18 @@ class ModelTests(unittest.TestCase):
         loss.backward()
         grads = [p.grad for p in model.parameters() if p.requires_grad]
         self.assertTrue(any(g is not None and g.abs().sum() > 0 for g in grads))
+
+    def test_deployment_wrapper_returns_probability(self):
+        model = StructureAwareLandslideNet(
+            encoder="tiny", use_structural=False, use_contrastive=False,
+            width=32, decoder_channels=24,
+        )
+        deploy = DeploymentModel(model).eval()
+        with torch.no_grad():
+            out = deploy(torch.randn(1, 3, 128, 128))
+        self.assertEqual(tuple(out.shape), (1, 1, 128, 128))
+        self.assertGreaterEqual(float(out.min()), 0.0)
+        self.assertLessEqual(float(out.max()), 1.0)
 
     def test_rgb_baseline(self):
         model = StructureAwareLandslideNet(

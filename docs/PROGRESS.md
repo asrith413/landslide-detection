@@ -10,7 +10,7 @@ promote an item to "done" without a command or artifact that proves it.
 | Area | Status |
 |---|---|
 | Python package (model, losses, data, metrics, tiling) | implemented |
-| Unit and smoke tests | 17 passing |
+| Unit and smoke tests | 18 passing |
 | Dataset download | complete (Zenodo, verified extraction) |
 | Dataset preprocessing | complete: 4044 labelled RGB patches |
 | Training | implemented; 1-epoch CPU smoke passed |
@@ -36,12 +36,13 @@ Model checks:
 - Full regnet model: 12,491,741 parameters; mobilenet light: 3,578,434.
 - Forward outputs: logits `(B,1,128,128)`, embedding `(B,64,32,32)`.
 - Backward pass produces finite gradients.
+- `DeploymentModel` returns a `(1,1,128,128)` probability map in `[0,1]`.
 
 Tests:
 
 ```bash
 python3 -m unittest discover -s tests -v
-# Ran 17 tests ... OK
+# Ran 18 tests ... OK
 ```
 
 Data source checks:
