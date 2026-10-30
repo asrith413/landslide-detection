@@ -15,8 +15,9 @@ promote an item to "done" without a command or artifact that proves it.
 | Dataset preprocessing | complete: 4044 labelled RGB patches |
 | Training | implemented; 1-epoch CPU smoke passed |
 | Ablations | runner implemented, dry-run verified |
-| ONNX export | implemented, not yet tested |
-| Rust inference core | implemented, 11 tests passing |
+| ONNX export | verified: opset 18 dynamo export works |
+| Rust inference core | implemented, 12 tests passing |
+| Deployment parity | verified: PyTorch vs Rust exact on 1-tile and 6-tile images |
 | Tauri app | scaffolded; frontend builds; native build blocked by SDK/webkit |
 | Docs | architecture, literature review, experimental plan, progress |
 | Git history / push | pushed to private `main` |
@@ -74,7 +75,19 @@ Rust core (`crates/landslide-core`):
 - `tract-onnx` 0.23.9, no ONNX Runtime.
 - Tiling, overlap blending, percentile stretch, ImageNet normalization, tiled
   inference, RGBA overlay, and JSON history.
-- `cargo test --workspace`: 11 passed.
+- `cargo test --workspace`: 12 passed.
+
+Deployment parity:
+
+- `onnx 1.23.2` built from source in Termux and relinked against `libpython3.14.so`.
+- `python3 -m ml.landslide.export_onnx ... --dynamo` writes a fixed 128x128 opset-18
+  model with external data; `tract-onnx` 0.23.9 loads it.
+- `scripts/check_parity.py` runs single-threaded, batch-1 PyTorch inference and the Rust
+  CLI on the same image. On the smoke checkpoint: 1-tile 128x128 image and 300x200
+  6-tile image both give max 8-bit probability difference 0 and mask IoU/Dice 1.0.
+- PyTorch CPU batch size and thread count change numerics slightly, so parity checks
+  force `torch.set_num_threads(1)` and `batch_size=1`; the Rust app processes one tile
+  at a time.
 
 Ablation runner:
 
@@ -110,25 +123,30 @@ Fixes completed:
   the structural branch denormalized with ImageNet values.
 - Orientation features now use algebraic `cos(2θ)`/`sin(2θ)` instead of
   `atan2`+`cos`/`sin`, improving ONNX/tract export compatibility.
+- Percentile stretch is applied once to the full image before tiling in both Python and
+  Rust; edge tiles use replicate padding. The previous Python path padded to a tile
+  multiple and used zero padding, which did not match the app on non-tile-size images.
+- Reference inference defaults to batch size 1 so it matches the Rust single-tile path.
 
 ## In progress
 
-- ONNX export and Rust/PyTorch parity are the next unverified links.
-- `python3 -m pip install onnx` did not complete in this Termux environment and no
-  aarch64 wheel is available on PyPI.
-- The legacy exporter (`dynamo=False`) also fails in this PyTorch 2.14 build with
-  `required keyword attribute 'value' has the wrong type` during graph optimization.
-  Export should be retried on the Windows laptop with a stable PyTorch release, or
-  with `--dynamo` after installing `onnx`/`onnxscript`.
+- ONNX export is working in Termux after building `onnx 1.23.2` from source.
+- The PyTorch 2.14 legacy exporter still fails with
+  `required keyword attribute 'value' has the wrong type`; `--dynamo` with `onnxscript`
+  succeeds and writes opset 18.
+- `onnx.load` crashes with `SIGSYS` when reading the external-data file on this Android
+  build, but `onnx.load(..., load_external_data=False)` and `tract-onnx` both read the
+  model correctly.
+- Remaining: repeat parity with a fully trained checkpoint and keep the check in the
+  release process.
 
 ## Next steps
 
-1. Export a checkpoint to ONNX (opset 17, fixed 128 input) and verify with `onnx`.
-2. Run `landslide-cli` on a prepared patch and compare mask/IoU against PyTorch.
+1. Train A0/A1 baselines and SA-LSNet on the CUDA laptop with the documented seeds.
+2. Export the best checkpoint with `--dynamo` and rerun the PyTorch/tract parity check.
 3. Build the Tauri desktop app on Windows; keep Android build for later.
-4. Train A0/A1 baselines and SA-LSNet on the CUDA laptop with the documented seeds.
-5. Run the A0-A7 ablation matrix and write measured results into the docs.
-6. Cross-region evaluation on Bijie/UAV data if labelled target data is available.
+4. Run the A0-A7 ablation matrix and write measured results into the docs.
+5. Cross-region evaluation on Bijie/UAV data if labelled target data is available.
 
 ## Planned, not started
 
@@ -140,7 +158,10 @@ Fixes completed:
 ## Known issues and risks
 
 - Full training on this CPU is not practical; use the Windows CUDA laptop.
-- ONNX export is untested: `onnx` is unavailable here, and the PyTorch 2.14 legacy exporter fails before serialization. Retry on Windows with a stable PyTorch build.
+- ONNX export requires `--dynamo` on this PyTorch 2.14 build; the legacy exporter fails
+  before serialization. The dynamo path needs `onnxscript` and writes opset 18.
+- `onnx.load` with external data crashes on this Android/Termux build (`SIGSYS`);
+  `tract-onnx` and `onnx.load(..., load_external_data=False)` work.
 - The official Landslide4Sense test masks are withheld; all internal test numbers come
   from the grouped hold-out and must be labelled as such.
 - Cross-region generalization is unproven until a labelled target dataset is used.

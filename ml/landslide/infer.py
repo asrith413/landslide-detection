@@ -11,7 +11,7 @@ import torch
 
 from .data import load_rgb, percentile_stretch, rgb_to_tensor
 from .model import build_model
-from .tiling import pad_to_tile, stitch_probs, tile_positions, unpad
+from .tiling import extract_replicated, stitch_probs, tile_positions
 
 
 @torch.no_grad()
@@ -20,23 +20,23 @@ def predict_array(
     rgb: np.ndarray,
     tile: int = 128,
     overlap: int = 32,
-    batch_size: int = 8,
+    batch_size: int = 1,
     device: str = "cpu",
     threshold: float = 0.5,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return (probability map, binary mask) for an HWC uint8 RGB image."""
+    """Return (probability map, binary mask) for an HWC uint8 RGB image.
+
+    The default batch size is 1 because PyTorch CPU kernels can produce slightly
+    different numerics for different batch sizes; batch 1 matches the Rust app.
+    """
     dev = torch.device(device)
     rgb = percentile_stretch(rgb)
-    padded, orig = pad_to_tile(rgb, tile)
-    positions = tile_positions(padded.shape[0], padded.shape[1], tile, overlap)
-    tiles = []
-    for t in positions:
-        patch = padded[t.y : t.y + t.h, t.x : t.x + t.w]
-        if patch.shape[0] != tile or patch.shape[1] != tile:
-            canvas = np.zeros((tile, tile, 3), dtype=np.uint8)
-            canvas[: patch.shape[0], : patch.shape[1]] = patch
-            patch = canvas
-        tiles.append(rgb_to_tensor(patch))
+    height, width = rgb.shape[:2]
+    positions = tile_positions(height, width, tile, overlap)
+    tiles = [
+        rgb_to_tensor(extract_replicated(rgb, t.y, t.x, height, width, tile))
+        for t in positions
+    ]
     probs: list[tuple] = []
     model.eval()
     for i in range(0, len(tiles), batch_size):
@@ -44,8 +44,7 @@ def predict_array(
         p = torch.sigmoid(model(batch)["logits"]).cpu().numpy()[:, 0]
         for j, t in enumerate(positions[i : i + batch_size]):
             probs.append((t, p[j][: t.h, : t.w]))
-    full = stitch_probs(probs, padded.shape[0], padded.shape[1], overlap)
-    full = unpad(full, orig)
+    full = stitch_probs(probs, height, width, overlap)
     return full, (full >= threshold).astype(np.uint8)
 
 
@@ -65,6 +64,7 @@ def main() -> None:
     ap.add_argument("--tile", type=int, default=128)
     ap.add_argument("--overlap", type=int, default=32)
     ap.add_argument("--threshold", type=float, default=0.5)
+    ap.add_argument("--batch-size", type=int, default=1)
     ap.add_argument("--device", default="cpu")
     args = ap.parse_args()
 
@@ -72,7 +72,15 @@ def main() -> None:
     model = build_model(ckpt["config"]).to(args.device)
     model.load_state_dict(ckpt["model_state"])
     rgb = load_rgb(args.image)
-    prob, mask = predict_array(model, rgb, args.tile, args.overlap, device=args.device, threshold=args.threshold)
+    prob, mask = predict_array(
+        model,
+        rgb,
+        args.tile,
+        args.overlap,
+        batch_size=args.batch_size,
+        device=args.device,
+        threshold=args.threshold,
+    )
     args.out.mkdir(parents=True, exist_ok=True)
     from PIL import Image
 

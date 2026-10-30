@@ -76,9 +76,14 @@ python scripts/run_ablations.py --data data/processed/landslide4sense \
 
 # 5. Export a deployment ONNX model (fixed 128x128 tiles)
 # Requires the optional onnx package: pip install onnx
-# If the legacy exporter fails, add --dynamo (requires onnxscript).
+# The legacy exporter can fail on recent PyTorch; --dynamo requires onnxscript.
+# The dynamo exporter writes opset 18, which tract-onnx 0.23 supports.
 python -m ml.landslide.export_onnx --checkpoint checkpoints/sa_lsnet/best.pt \
-    --out models/sa_lsnet.onnx
+    --out models/sa_lsnet.onnx --dynamo
+
+# 6. Check PyTorch vs Rust tract-onnx parity on one image
+python scripts/check_parity.py --checkpoint checkpoints/sa_lsnet/best.pt \
+    --onnx models/sa_lsnet.onnx --image sample.png
 ```
 
 ## Application
@@ -86,7 +91,9 @@ python -m ml.landslide.export_onnx --checkpoint checkpoints/sa_lsnet/best.pt \
 The Tauri app runs inference locally through the pure-Rust `landslide-core` crate
 (`tract-onnx`), so Windows and Android do not need a Python runtime or a cloud API.
 It supports model/image selection, original-vs-overlay-vs-mask views, adjustable
-threshold, timing, and local history.
+threshold, timing, and local history. The Python reference applies the same global
+percentile stretch, replicate edge padding, and overlap blending as the Rust core;
+`scripts/check_parity.py` checks this on a real image.
 
 ```bash
 cd app

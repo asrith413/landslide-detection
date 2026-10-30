@@ -123,7 +123,10 @@ Defaults: `w_bce=0.5`, `w_dice=0.5`, `w_contrastive=0.1`, `pos_weight=2.0`,
   by the accumulated weight, so overlaps blend smoothly and constant maps are preserved.
 - Edge tiles smaller than `2*overlap` clamp their ramp length, avoiding double-assigned
   weights.
-- `pad_to_tile` / `unpad` handle images smaller than one tile.
+- `extract_replicated` pads edge tiles by repeating the last row/column, so the model
+  always receives a full tile without black borders.
+- Percentile stretch is applied once to the full image before tiling, matching the
+  training preprocessing; the Rust core follows the same order.
 
 ## 8. Deployment path
 
@@ -131,7 +134,8 @@ Training is PyTorch. Deployment is **pure Rust** through `crates/landslide-core`
 (`tract-onnx`), not ONNX Runtime. ONNX Runtime's Android target requires building ORT
 from source, which is not practical in this environment. The exported graph is a
 fixed-shape 128x128 tile; the Rust core performs tiling, blending, thresholding,
-overlay generation, timing, and history storage.
+overlay generation, timing, and history storage. `scripts/check_parity.py` compares
+PyTorch and Rust outputs on the same image.
 
 ## 9. What is deliberately excluded
 

@@ -7,7 +7,7 @@ import torch
 from ml.landslide.data import grouped_split
 from ml.landslide.features import StructuralFeatureExtractor
 from ml.landslide.losses import BCEDiceLoss, MaskedObjectContrastiveLoss
-from ml.landslide.tiling import pad_to_tile, stitch_probs, tile_positions, unpad
+from ml.landslide.tiling import extract_replicated, stitch_probs, tile_positions
 
 
 class FeatureTests(unittest.TestCase):
@@ -97,11 +97,12 @@ class TilingTests(unittest.TestCase):
         self.assertEqual(out.shape, (h, w))
         np.testing.assert_allclose(out, 0.4, atol=1e-5)
 
-    def test_pad_unpad(self):
-        img = np.zeros((100, 70, 3), dtype=np.uint8)
-        padded, orig = pad_to_tile(img, 128)
-        self.assertEqual(padded.shape, (128, 128, 3))
-        self.assertEqual(unpad(padded, orig).shape, (100, 70, 3))
+    def test_extract_replicated(self):
+        img = np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)
+        tile = extract_replicated(img, 2, 2, 4, 4, 4)
+        self.assertEqual(tile.shape, (4, 4, 3))
+        np.testing.assert_array_equal(tile[0, 0], img[2, 2])
+        np.testing.assert_array_equal(tile[-1, -1], img[3, 3])
 
 
 if __name__ == "__main__":

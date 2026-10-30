@@ -17,7 +17,12 @@ def main() -> None:
     ap.add_argument("--checkpoint", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("models/sa_lsnet.onnx"))
     ap.add_argument("--size", type=int, default=128)
-    ap.add_argument("--opset", type=int, default=17)
+    ap.add_argument(
+        "--opset",
+        type=int,
+        default=18,
+        help="ONNX opset; the dynamo exporter requires >= 18",
+    )
     ap.add_argument("--device", default="cpu")
     ap.add_argument(
         "--dynamo",
@@ -32,6 +37,10 @@ def main() -> None:
         raise SystemExit(
             "ONNX export requires the optional 'onnx' package: pip install onnx"
         ) from exc
+
+    opset = max(args.opset, 18) if args.dynamo else args.opset
+    if opset != args.opset:
+        print(f"dynamo exporter requires opset >= 18; using {opset} instead of {args.opset}")
 
     ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     from .model import build_model
@@ -49,7 +58,7 @@ def main() -> None:
             str(args.out),
             input_names=["image"],
             output_names=["probability"],
-            opset_version=args.opset,
+            opset_version=opset,
             do_constant_folding=True,
             dynamic_axes=None,
             dynamo=args.dynamo,
@@ -58,6 +67,7 @@ def main() -> None:
         "checkpoint": str(args.checkpoint),
         "input": {"name": "image", "shape": [1, 3, args.size, args.size], "layout": "NCHW"},
         "output": {"name": "probability", "shape": [1, 1, args.size, args.size]},
+        "opset": opset,
         "normalization": {
             "rgb": "per-channel 2nd-98th percentile stretch to uint8, then ImageNet mean/std",
             "mean": [0.485, 0.456, 0.406],

@@ -74,21 +74,15 @@ def stitch_probs(
     return np.clip(acc / np.maximum(weight, 1e-6), 0.0, 1.0)
 
 
-def pad_to_tile(image: np.ndarray, tile: int = 128) -> tuple[np.ndarray, tuple[int, int]]:
-    h, w = image.shape[:2]
-    ph = max(tile, int(np.ceil(h / tile) * tile))
-    pw = max(tile, int(np.ceil(w / tile) * tile))
-    if (ph, pw) == (h, w):
-        return image, (h, w)
-    if image.ndim == 2:
-        out = np.zeros((ph, pw), dtype=image.dtype)
-        out[:h, :w] = image
-    else:
-        out = np.zeros((ph, pw, image.shape[2]), dtype=image.dtype)
-        out[:h, :w] = image
-    return out, (h, w)
-
-
-def unpad(image: np.ndarray, size: tuple[int, int]) -> np.ndarray:
-    h, w = size
-    return image[:h, :w]
+def extract_replicated(
+    image: np.ndarray,
+    y: int,
+    x: int,
+    height: int,
+    width: int,
+    size: int,
+) -> np.ndarray:
+    """Extract a size x size tile, replicating the last row/column at the edges."""
+    ys = np.minimum(np.arange(y, y + size), height - 1)
+    xs = np.minimum(np.arange(x, x + size), width - 1)
+    return image[np.ix_(ys, xs)]

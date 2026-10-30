@@ -38,8 +38,8 @@ pub fn percentile_stretch(rgb: &[u8], low: f32, high: f32) -> Vec<u8> {
     out
 }
 
-pub fn preprocess_rgb(
-    rgb: &[u8],
+pub fn normalize_rgb(
+    stretched: &[u8],
     width: usize,
     height: usize,
     mean: [f32; 3],
@@ -48,14 +48,13 @@ pub fn preprocess_rgb(
     if width == 0 || height == 0 {
         return Err(CoreError::Geometry("image must be non-empty".into()));
     }
-    if rgb.len() != width * height * 3 {
+    if stretched.len() != width * height * 3 {
         return Err(CoreError::Buffer(format!(
             "expected {} RGB bytes, got {}",
             width * height * 3,
-            rgb.len()
+            stretched.len()
         )));
     }
-    let stretched = percentile_stretch(rgb, 2.0, 98.0);
     let mut out = vec![0.0f32; 3 * width * height];
     for c in 0..3 {
         for y in 0..height {
@@ -66,6 +65,17 @@ pub fn preprocess_rgb(
         }
     }
     Ok(out)
+}
+
+pub fn preprocess_rgb(
+    rgb: &[u8],
+    width: usize,
+    height: usize,
+    mean: [f32; 3],
+    std: [f32; 3],
+) -> Result<Vec<f32>, CoreError> {
+    let stretched = percentile_stretch(rgb, 2.0, 98.0);
+    normalize_rgb(&stretched, width, height, mean, std)
 }
 
 #[cfg(test)]
@@ -93,5 +103,15 @@ mod tests {
     #[test]
     fn rejects_wrong_buffer() {
         assert!(preprocess_rgb(&[0u8; 10], 4, 4, IMAGENET_MEAN, IMAGENET_STD).is_err());
+        assert!(normalize_rgb(&[0u8; 10], 4, 4, IMAGENET_MEAN, IMAGENET_STD).is_err());
+    }
+
+    #[test]
+    fn preprocess_is_stretch_then_normalize() {
+        let rgb: Vec<u8> = (0..16 * 16 * 3).map(|i| (i % 251) as u8).collect();
+        let stretched = percentile_stretch(&rgb, 2.0, 98.0);
+        let expected = normalize_rgb(&stretched, 16, 16, IMAGENET_MEAN, IMAGENET_STD).unwrap();
+        let actual = preprocess_rgb(&rgb, 16, 16, IMAGENET_MEAN, IMAGENET_STD).unwrap();
+        assert_eq!(actual, expected);
     }
 }

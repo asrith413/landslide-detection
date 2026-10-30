@@ -2,7 +2,7 @@ use std::path::Path;
 use std::time::Instant;
 
 use crate::model::LandslideModel;
-use crate::preprocess::{preprocess_rgb, IMAGENET_MEAN, IMAGENET_STD};
+use crate::preprocess::{normalize_rgb, percentile_stretch, IMAGENET_MEAN, IMAGENET_STD};
 use crate::tiling::{stitch_tiles, tile_positions, Tile};
 use crate::CoreError;
 
@@ -80,11 +80,13 @@ impl Segmenter {
             return Err(CoreError::Buffer("RGB buffer size mismatch".into()));
         }
         let started = Instant::now();
+        let stretched = percentile_stretch(rgb, 2.0, 98.0);
         let tiles = tile_positions(height, width, self.options.tile_size, self.options.overlap)?;
         let mut probs: Vec<(Tile, Vec<f32>)> = Vec::with_capacity(tiles.len());
         for tile in &tiles {
-            let padded = extract_replicated(rgb, width, height, tile, self.options.tile_size);
-            let input = preprocess_rgb(
+            let padded =
+                extract_replicated(&stretched, width, height, tile, self.options.tile_size);
+            let input = normalize_rgb(
                 &padded,
                 self.options.tile_size,
                 self.options.tile_size,
