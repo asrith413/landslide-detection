@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "name": "CAS Landslide Dataset",
+    "doi": "10.5281/zenodo.10294997",
+    "license": "CC-BY-NC-4.0 with source-specific imagery terms",
+    "expected_image_size": 512,
+    "zenodo_record": "https://zenodo.org/records/10294997"
+  },
+  "require_complete_coverage": true,
+  "events": {
+    "Jiuzhai Valley": {
+      "split": "train",
+      "aliases": ["Jiuzhai valley", "Jiuzhai Valley UAV"]
+    },
+    "Hokkaido Iburi-Tobu": {
+      "split": "train",
+      "aliases": ["Hokkaido", "Hokkaido Iburi Tobu"]
+    },
+    "Lombok": {
+      "split": "train",
+      "aliases": ["Lombok 2018"]
+    },
+    "Moxi/Luding": {
+      "split": "val",
+      "aliases": ["Moxi", "Moxi town", "Moxitaidi", "Luding", "Moxi-Luding"]
+    },
+    "Tiburon Peninsula": {
+      "split": "val",
+      "aliases": ["Tiburon", "Tiburon Peninsula Planet", "Tiburon Peninsula Sentinel"]
+    },
+    "Wenchuan": {
+      "split": "val",
+      "aliases": ["Wenchuan 2008", "Wenchuan-2008"]
+    },
+    "Longxi River": {
+      "split": "test",
+      "aliases": ["Longxi", "Longxi River SAT", "Longxi River UAV"]
+    },
+    "Palu": {
+      "split": "test",
+      "aliases": ["Palu 2018"]
+    },
+    "Mengdong Township": {
+      "split": "test",
+      "aliases": ["Mengdong"]
+    }
+  },
+  "archives": [
+    {
+      "archive": "Wenchuan.zip",
+      "directory": "wenchuan",
+      "event": "Wenchuan",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Wenchuan.zip/content",
+      "bytes": 25210192,
+      "md5": "da7e6ca23e7e8e5551d03c17c203295c",
+      "sensor": "unknown",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Tiburon Peninsula (planet).zip",
+      "directory": "tiburon-planet",
+      "event": "Tiburon Peninsula",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Tiburon%20Peninsula%EF%BC%88planet%EF%BC%89.zip/content",
+      "bytes": 155217089,
+      "md5": "c67882410cf5a23f93211bf833297f2d",
+      "sensor": "Planet satellite",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Lombok.zip",
+      "directory": "lombok",
+      "event": "Lombok",
+      "split": "train",
+      "url": "https://zenodo.org/api/records/10294997/files/Lombok.zip/content",
+      "bytes": 179943364,
+      "md5": "e397e62cb0a5f8c36f034f0e2c6e9e25",
+      "sensor": "unknown",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Jiuzhai valley (UAV-0.5m).zip",
+      "directory": "jiuzhai-uav-0.5m",
+      "event": "Jiuzhai Valley",
+      "split": "train",
+      "url": "https://zenodo.org/api/records/10294997/files/Jiuzhai%20valley%20(UAV-0.5m).zip/content",
+      "bytes": 777424021,
+      "md5": "5c10880fd5e9510d3ef8d87891e60396",
+      "sensor": "UAV",
+      "gsd_m": "0.5"
+    },
+    {
+      "archive": "Mengdong Township.zip",
+      "directory": "mengdong-township",
+      "event": "Mengdong Township",
+      "split": "test",
+      "url": "https://zenodo.org/api/records/10294997/files/Mengdong%20Township.zip/content",
+      "bytes": 724135475,
+      "md5": "d3119b06eecc20891741a77a72ae848e",
+      "sensor": "unknown",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Longxi River (SAT).zip",
+      "directory": "longxi-sat",
+      "event": "Longxi River",
+      "split": "test",
+      "url": "https://zenodo.org/api/records/10294997/files/Longxi%20River(SAT).zip/content",
+      "bytes": 672812342,
+      "md5": "ea1d66899ead81e2bcfd2a6ffe22b820",
+      "sensor": "satellite",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Moxi town (UAV-0.2m).zip",
+      "directory": "moxi-uav-0.2m",
+      "event": "Moxi/Luding",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Moxi%20town%EF%BC%88UAV-0.2m%EF%BC%89.zip/content",
+      "bytes": 1017160974,
+      "md5": "30b4f45903d0eb0b3e72b978a2625595",
+      "sensor": "UAV",
+      "gsd_m": "0.2"
+    },
+    {
+      "archive": "Moxi town (UAV-1m).zip",
+      "directory": "moxi-uav-1m",
+      "event": "Moxi/Luding",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Moxi%20town%EF%BC%88UAV-1m%EF%BC%89.zip/content",
+      "bytes": 99370325,
+      "md5": "59fa5a25603520d6f912a498c663458e",
+      "sensor": "UAV",
+      "gsd_m": "1"
+    },
+    {
+      "archive": "Hokkaido Iburi-Tobu.zip",
+      "directory": "hokkaido-iburi-tobu",
+      "event": "Hokkaido Iburi-Tobu",
+      "split": "train",
+      "url": "https://zenodo.org/api/records/10294997/files/Hokkaido%20Iburi-Tobu.zip/content",
+      "bytes": 745717976,
+      "md5": "ee7f2942d3f463e746940a0bc872f821",
+      "sensor": "unknown",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Longxi River (UAV).zip",
+      "directory": "longxi-uav",
+      "event": "Longxi River",
+      "split": "test",
+      "url": "https://zenodo.org/api/records/10294997/files/Longxi%20River%EF%BC%88UAV%EF%BC%89.zip/content",
+      "bytes": 687025449,
+      "md5": "f0c22c3db1259f5c46446b67589df561",
+      "sensor": "UAV",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Jiuzhai valley (UAV-0.2m).zip",
+      "directory": "jiuzhai-uav-0.2m",
+      "event": "Jiuzhai Valley",
+      "split": "train",
+      "url": "https://zenodo.org/api/records/10294997/files/Jiuzhai%20valley%20(UAV-0.2m).zip/content",
+      "bytes": 2094116885,
+      "md5": "13500c3bdef40dac4b922557767fc4c4",
+      "sensor": "UAV",
+      "gsd_m": "0.2"
+    },
+    {
+      "archive": "palu.zip",
+      "directory": "palu",
+      "event": "Palu",
+      "split": "test",
+      "url": "https://zenodo.org/api/records/10294997/files/palu.zip/content",
+      "bytes": 408086146,
+      "md5": "df308634bfabea4ecfb135ac493bbb21",
+      "sensor": "unknown",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Moxitaidi (SAT).zip",
+      "directory": "moxitaidi-sat",
+      "event": "Moxi/Luding",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Moxitaidi%20(SAT).zip/content",
+      "bytes": 398397815,
+      "md5": "616a94b24dac0e6bc12d737b4d231c6a",
+      "sensor": "satellite",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Tiburon Peninsula (Sentinel).zip",
+      "directory": "tiburon-sentinel",
+      "event": "Tiburon Peninsula",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Tiburon%20Peninsula%EF%BC%88Sentinel%EF%BC%89.zip/content",
+      "bytes": 383158737,
+      "md5": "66946b7a59008868df3ee756d5c829c8",
+      "sensor": "Sentinel satellite",
+      "gsd_m": ""
+    },
+    {
+      "archive": "Moxitaidi (UAV-1m).zip",
+      "directory": "moxitaidi-uav-1m",
+      "event": "Moxi/Luding",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Moxitaidi%20(UAV-1m).zip/content",
+      "bytes": 276331458,
+      "md5": "feeb65cc731284a68b22f53a8d41a980",
+      "sensor": "UAV",
+      "gsd_m": "1"
+    },
+    {
+      "archive": "Moxitaidi (UAV-0.6m).zip",
+      "directory": "moxitaidi-uav-0.6m",
+      "event": "Moxi/Luding",
+      "split": "val",
+      "url": "https://zenodo.org/api/records/10294997/files/Moxitaidi%20(UAV-0.6m).zip/content",
+      "bytes": 545905382,
+      "md5": "597f8560ef8e572143211baea6d50080",
+      "sensor": "UAV",
+      "gsd_m": "0.6"
+    }
+  ]
+}

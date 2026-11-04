@@ -8,6 +8,8 @@ pipeline and a local-first Tauri 2 application for Windows and Android.
 > components. See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the live status and
 > [`docs/EXPERIMENTAL_PLAN.md`](docs/EXPERIMENTAL_PLAN.md) for the protocol.
 
+[![Open training notebook in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/asrith413/landslide-detection/blob/main/notebooks/Landslide_Training_Colab.ipynb)
+
 ## Why RGB-only?
 
 Most strong Landslide4Sense entries use 14 channels, including a DEM and slope layer.
@@ -86,6 +88,18 @@ python scripts/check_parity.py --checkpoint checkpoints/sa_lsnet/best.pt \
     --onnx models/sa_lsnet.onnx --image sample.png
 ```
 
+## Google Colab GPU Training
+
+Use [`notebooks/Landslide_Training_Colab.ipynb`](notebooks/Landslide_Training_Colab.ipynb)
+for persistent Google Drive checkpoints and GPU training when a local CUDA environment is
+not available. The notebook supports event-disjoint CAS manifests, SegFormer-B0,
+MobileNetV3/LR-ASPP, structure-gated SegFormer, hard-negative region contrast, exact resume,
+held-out event metrics, optional HR-GLDD evaluation, ONNX parity, supported quantization, and
+latency benchmarking.
+
+See [`notebooks/COLAB_GUIDE.md`](notebooks/COLAB_GUIDE.md) before downloading CAS. The notebook
+contains no precomputed scientific metrics and requires the real dataset for training.
+
 ## Application
 
 The Tauri app runs inference locally through the pure-Rust `landslide-core` crate
@@ -126,7 +140,9 @@ cargo run -p landslide-core --bin landslide-cli -- \
 
 | Dataset | Role | RGB | Masks | License | Access |
 |---|---|---|---|---|---|
-| Landslide4Sense (Zenodo) | primary train/val/test | B4/B3/B2 (RGB) | train + val masks; official test masks withheld | CC BY 4.0 | https://doi.org/10.5281/zenodo.10463239 |
+| CAS Landslide Dataset | primary Colab event-disjoint experiments | native RGB | binary masks | CC BY-NC 4.0 plus source-specific terms | https://doi.org/10.5281/zenodo.10294997 |
+| HR-GLDD | external RGB-only evaluation | RGB selected; NIR discarded | binary masks | CC BY 4.0 | https://doi.org/10.5281/zenodo.7189381 |
+| Landslide4Sense (Zenodo) | legacy grouped-holdout experiments | B4/B3/B2 (RGB) | train + val masks; official test masks withheld | CC BY 4.0 | https://doi.org/10.5281/zenodo.10463239 |
 | Landslide4Sense (HF mirror) | convenience mirror | yes | **mirror annotations are empty** (verified) | MIT/CC BY | https://huggingface.co/datasets/ibm-nasa-geospatial/Landslide4sense |
 | Bijie / UAV landslide datasets | cross-region evaluation (planned) | varies | varies | check per dataset | see literature review |
 

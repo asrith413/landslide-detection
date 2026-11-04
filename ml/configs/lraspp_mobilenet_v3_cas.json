@@ -1,0 +1,41 @@
+{
+  "experiment": "cas_lraspp_mobilenet_v3",
+  "seed": 42,
+  "data": {
+    "type": "event_manifest",
+    "manifest": "data/cas_manifest.csv",
+    "data_root": "data/cas",
+    "split_policy": "ml/configs/cas_colab.json",
+    "require_policy_coverage": true,
+    "expected_image_size": 512,
+    "image_size": 512,
+    "full_validation": true,
+    "batch_size": 8,
+    "num_workers": 2,
+    "pin_memory": true
+  },
+  "model": {
+    "architecture": "lraspp_mobilenet_v3",
+    "pretrained": true,
+    "pretrained_backbone": true,
+    "use_contrastive": false
+  },
+  "train": {
+    "epochs": 30,
+    "lr": 0.0003,
+    "weight_decay": 0.01,
+    "warmup_epochs": 2,
+    "amp": true,
+    "grad_clip": 1.0,
+    "gradient_accumulation": 1,
+    "empty_cache_each_epoch": true,
+    "patience": 8,
+    "contrastive_weight": 0.0,
+    "pos_weight": 2.0,
+    "boundary_weight": 0.0,
+    "bce_weight": 0.5,
+    "dice_weight": 0.5,
+    "resume": true
+  },
+  "output": "checkpoints/cas_lraspp_mobilenet_v3"
+}

@@ -27,7 +27,7 @@ def boundary_iou(pred: np.ndarray, target: np.ndarray, dilation_ratio: float = 0
     pred = _binary(pred)
     target = _binary(target)
     h, w = target.shape[-2:]
-    width = max(1, int(round(dilation_ratio * float(np.hypot(h, w)))))
+    width = max(1, round(dilation_ratio * float(np.hypot(h, w))))
     bp = _boundary(pred, width)
     bt = _boundary(target, width)
     inter = np.logical_and(bp, bt).sum()
@@ -49,7 +49,9 @@ class SegmentationMetrics:
     boundary_count: int = 0
     per_image_iou: list[float] = field(default_factory=list)
 
-    def update(self, logits: torch.Tensor, target: torch.Tensor, compute_boundary: bool = True) -> None:
+    def update(
+        self, logits: torch.Tensor, target: torch.Tensor, compute_boundary: bool = True
+    ) -> None:
         probs = torch.sigmoid(logits).detach().cpu().numpy()
         gt = (target.detach().cpu().numpy() > 0.5).astype(np.uint8)
         if probs.ndim == 4:
@@ -71,7 +73,7 @@ class SegmentationMetrics:
                 self.boundary_sum += boundary_iou(p, g, self.dilation_ratio)
                 self.boundary_count += 1
 
-    def compute(self) -> dict[str, float]:
+    def compute(self) -> dict[str, float | int]:
         tp, fp, fn, tn = self.tp, self.fp, self.fn, self.tn
         eps = 1e-9
         iou = tp / (tp + fp + fn + eps)
@@ -87,5 +89,9 @@ class SegmentationMetrics:
             "f1": float(f1),
             "boundary_iou": float(self.boundary_sum / max(self.boundary_count, 1)),
             "miou": float(np.mean(self.per_image_iou)) if self.per_image_iou else 0.0,
+            "tp": int(tp),
+            "fp": int(fp),
+            "fn": int(fn),
+            "tn": int(tn),
             "pixels": int(tp + fp + fn + tn),
         }

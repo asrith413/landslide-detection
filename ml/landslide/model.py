@@ -8,8 +8,12 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor, nn
 
+from .baselines import (
+    LRASPPMobileNetV3Baseline,
+    SegFormerB0Baseline,
+    StructuralSegFormerB0,
+)
 from .blocks import (
-    CBAM,
     ContrastiveHead,
     ConvBNReLU,
     CrossAttentionFusion,
@@ -17,7 +21,7 @@ from .blocks import (
     UpBlock,
 )
 from .encoder import EncoderProjector, build_encoder
-from .features import IMAGENET_MEAN, IMAGENET_STD, StructuralFeatureExtractor, denormalize_rgb
+from .features import IMAGENET_MEAN, IMAGENET_STD, StructuralFeatureExtractor
 
 
 class StructureAwareLandslideNet(nn.Module):
@@ -64,17 +68,11 @@ class StructureAwareLandslideNet(nn.Module):
         if use_structural:
             if fusion not in {"none", "gate", "cross"}:
                 raise ValueError(f"unknown fusion: {fusion}")
-            self.struct_projs = nn.ModuleList(
-                [ConvBNReLU(10, c, 3) for c in enc_channels]
-            )
+            self.struct_projs = nn.ModuleList([ConvBNReLU(10, c, 3) for c in enc_channels])
             if fusion in {"gate", "cross"}:
-                self.fusions = nn.ModuleList(
-                    [GatedStructuralFusion(c, c, c) for c in enc_channels]
-                )
+                self.fusions = nn.ModuleList([GatedStructuralFusion(c, c, c) for c in enc_channels])
             else:
-                self.fusions = nn.ModuleList(
-                    [nn.Conv2d(c * 2, c, 1) for c in enc_channels]
-                )
+                self.fusions = nn.ModuleList([nn.Conv2d(c * 2, c, 1) for c in enc_channels])
             self.deep_cross = CrossAttentionFusion(enc_channels[-1]) if fusion == "cross" else None
         else:
             self.struct_projs = None
@@ -88,7 +86,8 @@ class StructureAwareLandslideNet(nn.Module):
         self.dec2 = UpBlock(width, width, width)
         self.dec1 = UpBlock(width, width, width)
         self.dec0 = nn.Sequential(
-            ConvBNReLU(width, decoder_channels, 3), ConvBNReLU(decoder_channels, decoder_channels, 3)
+            ConvBNReLU(width, decoder_channels, 3),
+            ConvBNReLU(decoder_channels, decoder_channels, 3),
         )
         self.head = nn.Conv2d(decoder_channels, 1, 1)
         self.contrastive_head = ContrastiveHead(width, embed_dim) if use_contrastive else None
@@ -106,11 +105,12 @@ class StructureAwareLandslideNet(nn.Module):
             for i, (f, proj, fus) in enumerate(zip(feats, self.struct_projs, self.fusions)):
                 s = F.interpolate(struct, size=f.shape[-2:], mode="bilinear", align_corners=False)
                 s = proj(s)
-                if self.fusion_kind == "gate":
-                    fused.append(fus(f, s))
-                elif self.fusion_kind == "cross" and i == len(feats) - 1:
-                    assert self.deep_cross is not None
-                    fused.append(self.deep_cross(fus(f, s), s))
+                if self.fusion_kind in {"gate", "cross"}:
+                    y = fus(f, s)
+                    if self.fusion_kind == "cross" and i == len(feats) - 1:
+                        assert self.deep_cross is not None
+                        y = self.deep_cross(y, s)
+                    fused.append(y)
                 else:
                     fused.append(fus(torch.cat([f, s], dim=1)))
             feats = fused
@@ -127,26 +127,60 @@ class StructureAwareLandslideNet(nn.Module):
         return {"logits": logits, "embedding": embedding}
 
 
-def build_model(config: dict[str, Any]) -> StructureAwareLandslideNet:
+def build_model(
+    config: dict[str, Any],
+    pretrained_override: bool | None = None,
+) -> nn.Module:
     """Build a model from a JSON config's ``model`` section."""
     m = config.get("model", config)
-    return StructureAwareLandslideNet(
-        encoder=m.get("encoder", "regnet_y_400mf"),
-        pretrained=bool(m.get("pretrained", False)),
-        use_structural=bool(m.get("use_structural", True)),
-        fusion=m.get("fusion", "gate"),
-        use_contrastive=bool(m.get("use_contrastive", True)),
-        width=int(m.get("width", 96)),
-        decoder_channels=int(m.get("decoder_channels", 64)),
-        embed_dim=int(m.get("embed_dim", 64)),
-        dropout=float(m.get("dropout", 0.1)),
+    architecture = str(m.get("architecture", "sa_lsnet")).lower()
+    pretrained = (
+        bool(m.get("pretrained", False))
+        if pretrained_override is None
+        else bool(pretrained_override)
     )
+
+    if architecture == "sa_lsnet":
+        return StructureAwareLandslideNet(
+            encoder=m.get("encoder", "regnet_y_400mf"),
+            pretrained=pretrained,
+            use_structural=bool(m.get("use_structural", True)),
+            fusion=m.get("fusion", "gate"),
+            use_contrastive=bool(m.get("use_contrastive", True)),
+            width=int(m.get("width", 96)),
+            decoder_channels=int(m.get("decoder_channels", 64)),
+            embed_dim=int(m.get("embed_dim", 64)),
+            dropout=float(m.get("dropout", 0.1)),
+        )
+
+    checkpoint = str(m.get("checkpoint", m.get("pretrained_checkpoint", "nvidia/mit-b0")))
+    segformer_config = m.get("segformer_config")
+    if architecture == "segformer_b0":
+        return SegFormerB0Baseline(
+            pretrained=pretrained,
+            checkpoint=checkpoint,
+            config=segformer_config,
+        )
+    if architecture == "lraspp_mobilenet_v3":
+        pretrained_backbone = pretrained
+        if pretrained_override is None:
+            pretrained_backbone = bool(m.get("pretrained_backbone", pretrained))
+        return LRASPPMobileNetV3Baseline(pretrained_backbone=pretrained_backbone)
+    if architecture == "csg_segformer_b0":
+        return StructuralSegFormerB0(
+            pretrained=pretrained,
+            checkpoint=checkpoint,
+            config=segformer_config,
+            use_contrastive=bool(m.get("use_contrastive", True)),
+            embed_dim=int(m.get("embed_dim", 64)),
+        )
+    raise ValueError(f"unknown model architecture: {architecture}")
 
 
 class DeploymentModel(nn.Module):
     """ONNX-friendly wrapper returning a single probability map."""
 
-    def __init__(self, model: StructureAwareLandslideNet) -> None:
+    def __init__(self, model: nn.Module) -> None:
         super().__init__()
         self.model = model
 

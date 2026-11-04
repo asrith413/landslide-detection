@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "name": "HR-GLDD",
+    "doi": "10.5281/zenodo.7189381",
+    "license": "CC-BY-4.0",
+    "zenodo_record": "https://zenodo.org/records/7189381",
+    "usage": "external RGB-only evaluation; the fourth NIR channel is discarded"
+  },
+  "files": [
+    {
+      "name": "trainX.npy",
+      "url": "https://zenodo.org/api/records/7189381/files/trainX.npy/content",
+      "bytes": 293339264,
+      "md5": "1acff68e885a29458326a3021b637df0"
+    },
+    {
+      "name": "trainY.npy",
+      "url": "https://zenodo.org/api/records/7189381/files/trainY.npy/content",
+      "bytes": 73334912,
+      "md5": "7ed39900a53f038068a0d16214f8534d"
+    },
+    {
+      "name": "valX.npy",
+      "url": "https://zenodo.org/api/records/7189381/files/valX.npy/content",
+      "bytes": 74449024,
+      "md5": "d50d28888a8bd079b9dcae18cfc353a8"
+    },
+    {
+      "name": "valY.npy",
+      "url": "https://zenodo.org/api/records/7189381/files/valY.npy/content",
+      "bytes": 18612352,
+      "md5": "e4bd010d2e30131f5a2ca85f051ee797"
+    },
+    {
+      "name": "testX.npy",
+      "url": "https://zenodo.org/api/records/7189381/files/testX.npy/content",
+      "bytes": 93061248,
+      "md5": "faa334392c25c0774b12863ad83731ce"
+    },
+    {
+      "name": "testY.npy",
+      "url": "https://zenodo.org/api/records/7189381/files/testY.npy/content",
+      "bytes": 23265408,
+      "md5": "ea4572a889373d5151905ceffe3a2195"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-10-30
+Last updated: 2026-11-01
 
 This file separates what is implemented and verified from what is planned. Do not
 promote an item to "done" without a command or artifact that proves it.
@@ -10,16 +10,17 @@ promote an item to "done" without a command or artifact that proves it.
 | Area | Status |
 |---|---|
 | Python package (model, losses, data, metrics, tiling) | implemented |
-| Unit and smoke tests | 18 passing |
-| Dataset download | complete (Zenodo, verified extraction) |
+| Unit and smoke tests | 44 passing locally |
+| Dataset download | Landslide4Sense complete; CAS/HR-GLDD persistent download integration implemented |
 | Dataset preprocessing | complete: 4044 labelled RGB patches |
-| Training | implemented; RGB and SA-LSNet CPU smokes passed |
+| Training | implemented; exact resume, AMP, Drive-safe checkpoints, and CPU smokes passed |
 | Ablations | runner implemented, dry-run verified |
 | ONNX export | verified: opset 18 dynamo export works |
 | Rust inference core | implemented, 12 tests passing |
 | Deployment parity | verified: PyTorch vs Rust exact on 1-tile and 6-tile images |
 | Tauri app | scaffolded; frontend builds; native build blocked by SDK/webkit |
 | Docs | architecture, literature review, experimental plan, progress |
+| Google Colab | notebook and guide implemented; full CAS GPU run not yet performed |
 | Git history / push | pushed to private `main` |
 
 ## Verified
@@ -43,8 +44,22 @@ Tests:
 
 ```bash
 python3 -m unittest discover -s tests -v
-# Ran 18 tests ... OK
+# Ran 44 tests ... OK
 ```
+
+Colab integration checks (Windows CPU, Python 3.14, PyTorch 2.9.1):
+
+- `scripts/validate_colab_notebook.py` validates 32 cells, 18 compiling code cells,
+  one parameter cell, no committed outputs, and the CAS/HR-GLDD archive ledgers.
+- Event-manifest fixtures verify event isolation, complete policy coverage, full-decode
+  cache reuse, strict mask validation, and deterministic CAS manifest generation.
+- Resumable training fixtures verify optimizer/scheduler/scaler/RNG restoration and
+  manifest-hash compatibility across epochs.
+- Random-init SegFormer-B0, MobileNetV3/LR-ASPP, and structure-gated SegFormer all
+  passed local ONNX Runtime parity smoke checks; the measured maximum absolute error
+  was `5.96e-8` for each tested static graph. These are export checks, not model results.
+- No full CAS training or Colab GPU benchmark has been run, so no CAS quality or
+  latency result is claimed.
 
 Data source checks:
 
@@ -136,6 +151,14 @@ Fixes completed:
   Rust; edge tiles use replicate padding. The previous Python path padded to a tile
   multiple and used zero padding, which did not match the app on non-tile-size images.
 - Reference inference defaults to batch size 1 so it matches the Rust single-tile path.
+- Corrected foreground/background prototype class ordering in the existing contrastive
+  loss and normalized its prototypes.
+- Added connected hard-negative region contrast for the training-only embedding head.
+- Moved loss buffers to the selected device, fixing CUDA `pos_weight` placement.
+- Added atomic, exact-resume checkpoints with optimizer, scheduler, AMP scaler, RNG,
+  history, patience, and manifest identity.
+- Fixed the `fusion=cross` branch so all stages call gated fusion with both inputs.
+- Added event-level CAS and optional external HR-GLDD evaluation.
 
 ## In progress
 
@@ -150,8 +173,9 @@ Fixes completed:
 
 ## Next steps
 
-1. Train A0/A1 baselines and SA-LSNet on the CUDA laptop with the documented seeds.
-2. Export the best checkpoint with `--dynamo` and rerun the PyTorch/tract parity check.
+1. Run the Colab notebook on the complete CAS collection and retain its manifest/runtime
+   reports before treating any metric as a result.
+2. Export the best real-data checkpoint and rerun PyTorch/ONNX/tract parity checks.
 3. Build the Tauri desktop app on Windows; keep Android build for later.
 4. Run the A0-A7 ablation matrix and write measured results into the docs.
 5. Cross-region evaluation on Bijie/UAV data if labelled target data is available.

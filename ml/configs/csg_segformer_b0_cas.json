@@ -1,0 +1,48 @@
+{
+  "experiment": "cas_csg_segformer_b0",
+  "seed": 42,
+  "data": {
+    "type": "event_manifest",
+    "manifest": "data/cas_manifest.csv",
+    "data_root": "data/cas",
+    "split_policy": "ml/configs/cas_colab.json",
+    "require_policy_coverage": true,
+    "expected_image_size": 512,
+    "image_size": 512,
+    "full_validation": true,
+    "batch_size": 2,
+    "num_workers": 2,
+    "pin_memory": true
+  },
+  "model": {
+    "architecture": "csg_segformer_b0",
+    "pretrained": true,
+    "checkpoint": "nvidia/mit-b0",
+    "use_contrastive": true,
+    "embed_dim": 64
+  },
+  "train": {
+    "epochs": 30,
+    "lr": 0.00006,
+    "weight_decay": 0.01,
+    "warmup_epochs": 2,
+    "amp": true,
+    "grad_clip": 1.0,
+    "gradient_accumulation": 4,
+    "empty_cache_each_epoch": true,
+    "patience": 8,
+    "contrastive_loss": "hard_negative_region",
+    "contrastive_weight": 0.05,
+    "contrastive_warmup_epochs": 5,
+    "contrastive_temperature": 0.1,
+    "contrastive_max_negative_regions": 3,
+    "contrastive_false_positive_threshold": 0.5,
+    "contrastive_min_region_pixels": 2,
+    "pos_weight": 2.0,
+    "boundary_weight": 0.0,
+    "bce_weight": 0.5,
+    "dice_weight": 0.5,
+    "resume": true
+  },
+  "output": "checkpoints/cas_csg_segformer_b0"
+}

@@ -79,10 +79,18 @@ class GatedStructuralFusion(nn.Module):
     can suppress handcrafted features on images where they are misleading.
     """
 
-    def __init__(self, rgb_ch: int, struct_ch: int, out_ch: int | None = None) -> None:
+    def __init__(
+        self,
+        rgb_ch: int,
+        struct_ch: int,
+        out_ch: int | None = None,
+        gate_bias: float | None = None,
+    ) -> None:
         super().__init__()
         out_ch = out_ch or rgb_ch
-        self.rgb_proj = nn.Conv2d(rgb_ch, out_ch, 1, bias=False) if rgb_ch != out_ch else nn.Identity()
+        self.rgb_proj = (
+            nn.Conv2d(rgb_ch, out_ch, 1, bias=False) if rgb_ch != out_ch else nn.Identity()
+        )
         self.struct_proj = ConvBNReLU(struct_ch, out_ch, 3)
         self.gate = nn.Sequential(
             nn.Conv2d(out_ch * 2, out_ch, 3, padding=1, bias=False),
@@ -91,11 +99,15 @@ class GatedStructuralFusion(nn.Module):
             nn.Conv2d(out_ch, out_ch, 1),
             nn.Sigmoid(),
         )
+        if gate_bias is not None:
+            nn.init.constant_(self.gate[-2].bias, gate_bias)
         self.refine = CBAM(out_ch)
 
     def forward(self, rgb: Tensor, struct: Tensor) -> Tensor:
         if struct.shape[-2:] != rgb.shape[-2:]:
-            struct = F.interpolate(struct, size=rgb.shape[-2:], mode="bilinear", align_corners=False)
+            struct = F.interpolate(
+                struct, size=rgb.shape[-2:], mode="bilinear", align_corners=False
+            )
         rgb = self.rgb_proj(rgb)
         struct = self.struct_proj(struct)
         gate = self.gate(torch.cat([rgb, struct], dim=1))

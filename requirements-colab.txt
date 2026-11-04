@@ -1,0 +1,9 @@
+# Install after selecting a Colab GPU runtime. Existing CUDA-enabled torch/torchvision
+# builds satisfy the lower bounds in requirements.txt and must not be replaced.
+-r requirements.txt
+transformers>=4.46,<5
+onnx>=1.17,<2
+onnxruntime>=1.20,<2
+onnxscript>=0.5,<1
+matplotlib>=3.8,<4
+tqdm>=4.66,<5
